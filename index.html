@@ -473,25 +473,25 @@
                         </div>
                     </div>
                     <div class="contact-form-container" data-reveal="fade-left">
-                        <form id="assessment-form" class="contact-form">
+                        <form id="assessment-form" class="contact-form" enctype="multipart/form-data">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="name">Full Name</label>
-                                    <input type="text" id="name" name="name" placeholder="John Doe" required>
+                                    <input type="text" id="name" name="name" class="form-control" placeholder="John Doe" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email Address</label>
-                                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                                    <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com" required>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="phone">Phone / WhatsApp</label>
-                                    <input type="tel" id="phone" name="phone" placeholder="+63 900 000 0000" required>
+                                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="+63 900 000 0000" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="country">Current Country</label>
-                                    <select id="country" name="country" required>
+                                    <select id="country" name="country" class="form-control" required>
                                         <option value="" disabled selected>Select your country</option>
                                         <option value="Philippines">Philippines</option>
                                         <option value="Sri Lanka">Sri Lanka</option>
@@ -503,16 +503,22 @@
                             </div>
                             <div class="form-group">
                                 <label for="interest">Interest</label>
-                                <select id="interest" name="interest" required>
+                                <select id="interest" name="interest" class="form-control" required>
                                     <option value="" disabled selected>What are you looking for?</option>
                                     <option value="Skilled Worker">Professional Pathway</option>
                                     <option value="Student">Student Pathway</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="message">Your Profile Summary (Optional)</label>
-                                <textarea id="message" name="message" rows="4"
-                                    placeholder="Briefly describe your background..."></textarea>
+                                <label for="cv">Upload Current CV (Optional)</label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" class="file-input-hidden">
+                                    <div class="file-input-custom">
+                                        <i class="fas fa-file-upload"></i>
+                                        <span class="file-input-text">Choose your CV (PDF, DOC, DOCX)</span>
+                                    </div>
+                                </div>
+                                <small>Accepted formats: PDF, DOC, DOCX. Maximum file size: 10 MB.</small>
                             </div>
                             <button type="submit" class="btn btn-primary full-width">Get Free Eligibility
                                 Assessment</button>

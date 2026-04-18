@@ -76,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const assessmentForm = document.getElementById('assessment-form');
     const formSuccess = document.getElementById('form-success');
     const formError = document.getElementById('form-error');
+    const fileInput = document.getElementById('cv');
+    const fileInputText = document.querySelector('.file-input-text');
+    const defaultFileText = 'Choose your CV (PDF, DOC, DOCX)';
 
     if (assessmentForm) {
         assessmentForm.addEventListener('submit', async (e) => {
@@ -89,6 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(assessmentForm);
             const name = formData.get('name')?.toString().trim() || '';
             const subject = `Request for Assessment - ${name}`;
+            const selectedFile = fileInput?.files?.[0];
+            const allowedFileTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
+            const maxFileSizeBytes = 10 * 1024 * 1024;
 
             formData.set('_subject', subject);
             formData.set('_captcha', 'false');
@@ -96,6 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (formError) {
                 formError.classList.add('hidden');
+            }
+
+            if (selectedFile) {
+                const hasValidType = allowedFileTypes.includes(selectedFile.type)
+                    || /\.(pdf|doc|docx)$/i.test(selectedFile.name);
+
+                if (!hasValidType || selectedFile.size > maxFileSizeBytes) {
+                    if (formError) {
+                        formError.classList.remove('hidden');
+                    }
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.disabled = false;
+                    return;
+                }
             }
 
             try {
@@ -132,6 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (formError) {
             formError.classList.add('hidden');
         }
+        if (fileInputText) {
+            fileInputText.innerText = defaultFileText;
+            fileInputText.style.color = '';
+        }
     };
 
     // 6. Smooth Scroll for all anchor links
@@ -156,7 +184,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 7. Language Switcher Logic
+    // 7. CV File Input Listener
+    if (fileInput && fileInputText) {
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                fileInputText.innerText = fileInput.files[0].name;
+                fileInputText.style.color = '#1A1A1A';
+            } else {
+                fileInputText.innerText = defaultFileText;
+                fileInputText.style.color = '';
+            }
+        });
+    }
+
+    // 8. Language Switcher Logic
     const langLinks = document.querySelectorAll('[data-lang]');
 
     // Function to get cookie

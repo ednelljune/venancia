@@ -216,6 +216,44 @@ img {
     gap: 15px;
 }
 
+/* Hide Google Translate UI */
+.skiptranslate, 
+.goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-te-menu-value span:nth-child(2),
+.goog-te-menu-value img,
+.goog-te-gadget .goog-te-combo {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}
+
+.goog-te-gadget {
+    color: transparent !important;
+    font-size: 0 !important;
+}
+
+.goog-te-gadget img {
+    display: none !important;
+}
+
+.goog-tooltip {
+    display: none !important;
+}
+
+.goog-tooltip:hover {
+    display: none !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .mobile-menu-toggle {
     display: none;
     background: none;
@@ -929,7 +967,98 @@ img {
     color: var(--white);
 }
 
-/* Sticky WhatsApp */
+/* Floating Language Switcher (Bottom Left) */
+.lang-switcher-floating {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    z-index: 1000;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--white);
+    box-shadow: 0 10px 20px rgba(255, 138, 0, 0.3);
+}
+
+.lang-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 30px rgba(255, 138, 0, 0.4);
+}
+
+.lang-dropdown {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 0;
+    width: 180px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-medium);
+    padding: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: var(--transition);
+    z-index: 1001;
+}
+
+.lang-dropdown-inner {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Custom Scrollbar for Dropdown */
+.lang-dropdown-inner::-webkit-scrollbar {
+    width: 4px;
+}
+
+.lang-dropdown-inner::-webkit-scrollbar-thumb {
+    background: rgba(255, 184, 0, 0.3);
+    border-radius: 10px;
+}
+
+.lang-dropdown-inner::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+.lang-switcher-floating:hover .lang-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.lang-dropdown a {
+    display: block;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: var(--transition);
+    color: var(--dark-grey);
+}
+
+.lang-dropdown a:hover {
+    background: rgba(255, 184, 0, 0.1);
+    color: var(--primary-dark);
+}
+
+.lang-dropdown a.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Sticky WhatsApp (Bottom Right) */
 .whatsapp-sticky {
     position: fixed;
     bottom: 30px;
@@ -944,7 +1073,7 @@ img {
     justify-content: center;
     font-size: 2rem;
     box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-    z-index: 999;
+    z-index: 1000;
     transition: var(--transition);
 }
 
@@ -1101,3 +1230,58 @@ img {
         grid-template-columns: 1fr;
     }
 }
+/* Mobile Language Nav */
+.mobile-lang-nav {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nav-label {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--primary-dark);
+}
+
+.mobile-lang-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mobile-lang-list a {
+    background: var(--light-grey);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.mobile-lang-list a.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Media Queries Adjustment */
+@media (max-width: 991px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .header-ctas .btn-outline {
+        display: none;
+    }
+    
+    .lang-switcher {
+        display: none;
+    }
+    
+    .header-ctas {
+        gap: 10px;
+    }
+}
+

@@ -72,27 +72,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 5. Form Handling (Mock Submission)
+    // 5. Form Handling
     const assessmentForm = document.getElementById('assessment-form');
     const formSuccess = document.getElementById('form-success');
+    const formError = document.getElementById('form-error');
 
     if (assessmentForm) {
-        assessmentForm.addEventListener('submit', (e) => {
+        assessmentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Get button and show loading state
+
             const submitBtn = assessmentForm.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerText;
             submitBtn.innerText = 'Sending...';
             submitBtn.disabled = true;
 
-            // Simulate API call
-            setTimeout(() => {
+            const formData = new FormData(assessmentForm);
+            const name = formData.get('name')?.toString().trim() || '';
+            const subject = `Request for Assessment - ${name}`;
+
+            formData.set('_subject', subject);
+            formData.set('_captcha', 'false');
+            formData.set('_template', 'table');
+
+            if (formError) {
+                formError.classList.add('hidden');
+            }
+
+            try {
+                const response = await fetch('https://formsubmit.co/ajax/info@venancia.com.au', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json'
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Form submission failed');
+                }
+
                 assessmentForm.classList.add('hidden');
                 formSuccess.classList.remove('hidden');
+            } catch (error) {
+                if (formError) {
+                    formError.classList.remove('hidden');
+                }
+            } finally {
                 submitBtn.innerText = originalBtnText;
                 submitBtn.disabled = false;
-            }, 1500);
+            }
         });
     }
 
@@ -101,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
         assessmentForm.reset();
         assessmentForm.classList.remove('hidden');
         formSuccess.classList.add('hidden');
+        if (formError) {
+            formError.classList.add('hidden');
+        }
     };
 
     // 6. Smooth Scroll for all anchor links
@@ -121,6 +152,63 @@ document.addEventListener('DOMContentLoaded', () => {
                     top: offsetPosition,
                     behavior: 'smooth'
                 });
+            }
+        });
+    });
+
+    // 7. Language Switcher Logic
+    const langLinks = document.querySelectorAll('[data-lang]');
+
+    // Function to get cookie
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    // Function to set language cookie
+    function setLanguage(lang) {
+        // Remove existing cookie first
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + document.domain;
+        
+        // Set new cookie
+        const cookieValue = lang === 'en' ? '' : `/auto/${lang}`;
+        document.cookie = `googtrans=${cookieValue}; path=/`;
+        
+        // Final fallback for domain-specific cookies if needed
+        if (lang !== 'en') {
+            document.cookie = `googtrans=${cookieValue}; path=/; domain=${window.location.hostname}`;
+        }
+        
+        location.reload();
+    }
+
+    // Update UI based on current cookie
+    const currentTrans = getCookie('googtrans');
+    let currentLangCode = 'en';
+
+    if (currentTrans) {
+        const parts = currentTrans.split('/');
+        currentLangCode = parts[parts.length - 1];
+    }
+
+
+
+    // Update active states
+    langLinks.forEach(link => {
+        const lang = link.getAttribute('data-lang');
+        if (lang === currentLangCode) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const selectedLang = link.getAttribute('data-lang');
+            if (selectedLang !== currentLangCode) {
+                setLanguage(selectedLang);
             }
         });
     });

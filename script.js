@@ -300,5 +300,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (floatingSwitcher && !floatingSwitcher.contains(e.target)) {
             floatingSwitcher.classList.remove('active');
         }
-    });
+    // 10. Form Submission Timestamp (Australia/Melbourne)
+    const submittedAtField = document.getElementById('submitted-at-au');
+    const assessmentForm = document.getElementById('assessment-form');
+
+    if (assessmentForm && submittedAtField) {
+        assessmentForm.addEventListener('submit', () => {
+            const now = new Date();
+            const auTime = now.toLocaleString("en-AU", { timeZone: "Australia/Melbourne" });
+            submittedAtField.value = auTime;
+        });
+    }
 });

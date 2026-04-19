@@ -1286,13 +1286,19 @@ body {
 
 .mobile-lang-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
     max-height: 0;
     overflow: hidden;
     padding-right: 5px;
     transition: all 0.4s ease-out;
     opacity: 0;
+}
+
+@media (max-width: 480px) {
+    .mobile-lang-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .mobile-lang-nav.active .mobile-lang-grid {
@@ -1365,7 +1371,7 @@ body {
 }
 
 /* Media Queries Adjustment */
-@media (max-width: 991px) {
+@media (max-width: 1024px) {
     .desktop-only {
         display: none !important;
     }
@@ -1375,7 +1381,8 @@ body {
     }
     
     .lang-switcher,
-    .lang-switcher-floating {
+    .lang-switcher-floating,
+    .lang-switcher-container {
         display: none !important;
     }
     

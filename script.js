@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInputText = document.querySelector('.file-input-text');
     const formSubjectInput = document.getElementById('form-subject');
     const formTarget = document.getElementById('formsubmit-target');
+    const submittedAtAuInput = document.getElementById('submitted-at-au');
     const defaultFileText = 'Choose your CV (PDF, DOC, DOCX)';
 
     if (assessmentForm) {
@@ -131,6 +132,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (formSubjectInput) {
                 formSubjectInput.value = subject;
+            }
+
+            if (submittedAtAuInput) {
+                submittedAtAuInput.value = new Intl.DateTimeFormat('en-AU', {
+                    timeZone: 'Australia/Melbourne',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true,
+                    timeZoneName: 'short'
+                }).format(new Date());
             }
 
             if (formError) {

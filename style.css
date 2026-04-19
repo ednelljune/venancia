@@ -1334,32 +1334,27 @@ body {
 .mobile-lang-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    max-height: 0;
-    overflow: hidden;
+    gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
     padding-right: 5px;
-    transition: all 0.4s ease-out;
-    opacity: 0;
-}
-
-.mobile-lang-nav.active .mobile-lang-grid {
-    max-height: 400px;
-    opacity: 1;
-    margin-top: 15px;
 }
 
 .mobile-lang-grid a {
     background: #f5f5f5;
-    padding: 10px 8px;
-    border-radius: 8px;
+    padding: 12px 15px;
+    border-radius: 10px;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--dark);
     text-align: center;
     transition: var(--transition);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.mobile-lang-grid a:hover, 
+.mobile-lang-grid a.active {
+    background: var(--primary);
+    color: var(--white);
 }
 
 /* Custom Scrollbar for Mobile Lang Grid */
@@ -1375,7 +1370,7 @@ body {
     color: var(--white);
 }
 
-/* Final Media Queries */
+/* Media Queries Adjustment */
 @media (max-width: 1024px) {
     .desktop-only {
         display: none !important;
@@ -1389,9 +1384,6 @@ body {
     .lang-switcher-floating,
     .lang-switcher-container {
         display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
     }
     
     .header-ctas {

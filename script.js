@@ -260,4 +260,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 9. Click-to-Toggle for Language Switchers
+    const floatingSwitcher = document.querySelector('.lang-switcher-floating');
+    const mobileLangHeader = document.querySelector('.mobile-lang-header');
+    const mobileLangNav = document.querySelector('.mobile-lang-nav');
+
+    if (floatingSwitcher) {
+        const langBtn = floatingSwitcher.querySelector('.lang-btn');
+        langBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            floatingSwitcher.classList.toggle('active');
+        });
+    }
+
+    if (mobileLangHeader && mobileLangNav) {
+        mobileLangHeader.addEventListener('click', () => {
+            mobileLangNav.classList.toggle('active');
+        });
+    }
+
+    // Close floating switcher when clicking outside
+    document.addEventListener('click', (e) => {
+        if (floatingSwitcher && !floatingSwitcher.contains(e.target)) {
+            floatingSwitcher.classList.remove('active');
+        }
+    });
 });

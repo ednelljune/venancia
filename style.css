@@ -1283,31 +1283,60 @@ body {
     border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.nav-label {
-    display: block;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 700;
-    margin-bottom: 15px;
+.mobile-lang-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
     color: var(--primary-dark);
 }
 
-.mobile-lang-list {
-    display: flex;
-    flex-wrap: wrap;
+.mobile-lang-header i {
+    font-size: 1.4rem;
+}
+
+.mobile-lang-header span {
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mobile-lang-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
-.mobile-lang-list a {
-    background: var(--light-grey);
-    padding: 8px 16px;
-    border-radius: 8px;
+.mobile-lang-grid a {
+    background: #f5f5f5;
+    padding: 12px 15px;
+    border-radius: 10px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    color: var(--dark);
+    text-align: center;
+    transition: var(--transition);
 }
 
-.mobile-lang-list a.active {
+.mobile-lang-grid a:hover, 
+.mobile-lang-grid a.active {
+    background: var(--primary);
+    color: var(--white);
+}
+
+/* Custom Scrollbar for Mobile Lang Grid */
+.mobile-lang-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.mobile-lang-grid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
     background: var(--primary);
     color: var(--white);
 }

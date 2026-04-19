@@ -42,7 +42,7 @@
 
                 <div class="header-ctas">
                     <a href="tel:+61431996025" class="btn btn-outline desktop-only">Call Us</a>
-                    <a href="https://wa.me/61431996025" class="btn btn-primary">Message Us</a>
+                    <a href="https://wa.me/61431996025" class="btn btn-primary desktop-only">Message Us</a>
                     <button class="mobile-menu-toggle" aria-label="Toggle menu">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -63,13 +63,28 @@
             <li><a href="tel:+61431996025">Call Us</a></li>
             <li><a href="https://wa.me/61431996025">Message Us on WhatsApp</a></li>
             <li class="mobile-lang-nav">
-                <span class="nav-label">Change Language</span>
-                <div class="mobile-lang-list">
-                    <a href="#" data-lang="en" class="active">EN</a>
-                    <a href="#" data-lang="id">ID</a>
-                    <a href="#" data-lang="ne">NE</a>
-                    <a href="#" data-lang="si">SI</a>
-                    <a href="#" data-lang="tl">TL</a>
+                <div class="mobile-lang-header">
+                    <i class="fas fa-globe"></i>
+                    <span>Select Language</span>
+                </div>
+                <div class="mobile-lang-grid">
+                    <a href="#" data-lang="en">English</a>
+                    <a href="#" data-lang="id">Indonesian</a>
+                    <a href="#" data-lang="ne">Nepali</a>
+                    <a href="#" data-lang="si">Sinhala</a>
+                    <a href="#" data-lang="tl">Tagalog</a>
+                    <a href="#" data-lang="pl">Polish</a>
+                    <a href="#" data-lang="no">Norwegian</a>
+                    <a href="#" data-lang="es">Spanish</a>
+                    <a href="#" data-lang="fr">French</a>
+                    <a href="#" data-lang="de">German</a>
+                    <a href="#" data-lang="it">Italian</a>
+                    <a href="#" data-lang="pt">Portuguese</a>
+                    <a href="#" data-lang="ru">Russian</a>
+                    <a href="#" data-lang="hi">Hindi</a>
+                    <a href="#" data-lang="zh-CN">Chinese</a>
+                    <a href="#" data-lang="ja">Japanese</a>
+                    <a href="#" data-lang="ko">Korean</a>
                 </div>
             </li>
         </ul>
@@ -473,7 +488,17 @@
                         </div>
                     </div>
                     <div class="contact-form-container" data-reveal="fade-left">
-                        <form id="assessment-form" class="contact-form" enctype="multipart/form-data">
+                        <form
+                            id="assessment-form"
+                            class="contact-form"
+                            action="https://formsubmit.co/info@venancia.com.au"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            target="formsubmit-target"
+                        >
+                            <input type="hidden" id="form-subject" name="_subject" value="Request for Assessment">
+                            <input type="hidden" name="_captcha" value="false">
+                            <input type="hidden" name="_template" value="table">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="name">Full Name</label>
@@ -523,6 +548,12 @@
                             <button type="submit" class="btn btn-primary full-width">Get Free Eligibility
                                 Assessment</button>
                         </form>
+                        <iframe
+                            id="formsubmit-target"
+                            name="formsubmit-target"
+                            class="hidden"
+                            title="Form submission target"
+                        ></iframe>
                         <div id="form-success" class="form-success-message hidden">
                             <i class="fas fa-check-circle"></i>
                             <h3>Request Sent</h3>

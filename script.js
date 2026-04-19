@@ -78,14 +78,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const formError = document.getElementById('form-error');
     const fileInput = document.getElementById('cv');
     const fileInputText = document.querySelector('.file-input-text');
+    const formSubjectInput = document.getElementById('form-subject');
+    const formTarget = document.getElementById('formsubmit-target');
     const defaultFileText = 'Choose your CV (PDF, DOC, DOCX)';
 
     if (assessmentForm) {
+        let pendingIframeResponse = false;
+        let submitBtn = null;
+        let originalBtnText = '';
+
+        const resetSubmitButton = () => {
+            if (submitBtn) {
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+            }
+        };
+
+        if (formTarget) {
+            formTarget.addEventListener('load', () => {
+                if (!pendingIframeResponse) {
+                    return;
+                }
+
+                pendingIframeResponse = false;
+                assessmentForm.classList.add('hidden');
+                formSuccess.classList.remove('hidden');
+                if (formError) {
+                    formError.classList.add('hidden');
+                }
+                resetSubmitButton();
+            });
+        }
+
         assessmentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const submitBtn = assessmentForm.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerText;
+            submitBtn = assessmentForm.querySelector('button[type="submit"]');
+            originalBtnText = submitBtn.innerText;
             submitBtn.innerText = 'Sending...';
             submitBtn.disabled = true;
 
@@ -100,9 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
             const maxFileSizeBytes = 10 * 1024 * 1024;
 
-            formData.set('_subject', subject);
-            formData.set('_captcha', 'false');
-            formData.set('_template', 'table');
+            if (formSubjectInput) {
+                formSubjectInput.value = subject;
+            }
 
             if (formError) {
                 formError.classList.add('hidden');
@@ -116,35 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (formError) {
                         formError.classList.remove('hidden');
                     }
-                    submitBtn.innerText = originalBtnText;
-                    submitBtn.disabled = false;
+                    resetSubmitButton();
                     return;
                 }
             }
 
-            try {
-                const response = await fetch('https://formsubmit.co/ajax/info@venancia.com.au', {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json'
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error('Form submission failed');
-                }
-
-                assessmentForm.classList.add('hidden');
-                formSuccess.classList.remove('hidden');
-            } catch (error) {
-                if (formError) {
-                    formError.classList.remove('hidden');
-                }
-            } finally {
-                submitBtn.innerText = originalBtnText;
-                submitBtn.disabled = false;
-            }
+            pendingIframeResponse = true;
+            assessmentForm.submit();
         });
     }
 

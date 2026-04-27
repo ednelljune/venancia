@@ -1014,27 +1014,25 @@ body {
 }
 
 /* Floating Language Switcher (Bottom Left) */
-.lang-switcher-floating {
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    z-index: 1000;
+.header-lang-switcher {
+    position: relative;
+    margin-left: 15px;
 }
 
 .lang-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     border: none;
     border-radius: 50%;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     cursor: pointer;
     transition: var(--transition);
     color: var(--white);
-    box-shadow: 0 10px 20px rgba(255, 138, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 138, 0, 0.2);
 }
 
 .lang-btn:hover {
@@ -1044,8 +1042,8 @@ body {
 
 .lang-dropdown {
     position: absolute;
-    bottom: calc(100% + 15px);
-    left: 0;
+    top: calc(100% + 10px);
+    right: 0;
     width: 180px;
     background: var(--white);
     border-radius: 12px;
@@ -1056,6 +1054,125 @@ body {
     transform: translateY(10px);
     transition: var(--transition);
     z-index: 1001;
+}
+
+/* Floating WhatsApp & Lang Switcher */
+.whatsapp-wrapper {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.whatsapp-sticky {
+    width: 60px;
+    height: 60px;
+    background-color: #25d366;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: var(--transition);
+    position: relative;
+}
+
+.whatsapp-sticky:hover {
+    transform: scale(1.1);
+}
+
+.whatsapp-tooltip {
+    position: absolute;
+    right: 75px;
+    background: var(--dark);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.whatsapp-wrapper:hover .whatsapp-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Floating Language Options */
+.floating-lang-options {
+    position: absolute;
+    bottom: 75px;
+    right: 0;
+    background: white;
+    box-shadow: var(--shadow-medium);
+    border-radius: 15px;
+    padding: 15px;
+    width: 280px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: var(--transition);
+    z-index: 1001;
+}
+
+.whatsapp-wrapper:hover .floating-lang-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.announcement-card {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+
+.announcement-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255, 138, 0, 0.5) !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.announcement-card:hover h4 {
+    color: var(--primary) !important;
+}
+
+.floating-lang-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.floating-lang-grid a {
+    font-size: 0.85rem;
+    color: var(--dark-grey);
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--light-grey);
+    text-align: center;
+    transition: var(--transition);
+}
+
+.floating-lang-grid a:hover {
+    background: var(--primary);
+    color: var(--dark);
+}
+
+@media (max-width: 768px) {
+    .whatsapp-wrapper {
+        bottom: 20px;
+        right: 20px;
+    }
+    .floating-lang-options {
+        width: 240px;
+        bottom: 70px;
+    }
 }
 
 .lang-dropdown-inner {
@@ -1078,8 +1195,8 @@ body {
     background: var(--primary);
 }
 
-.lang-switcher-floating:hover .lang-dropdown,
-.lang-switcher-floating.active .lang-dropdown {
+.header-lang-switcher:hover .lang-dropdown,
+.header-lang-switcher.active .lang-dropdown {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
@@ -1366,9 +1483,6 @@ body {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
-    background: var(--primary);
-    color: var(--white);
-}
 
 /* Media Queries Adjustment */
 @media (max-width: 1024px) {
@@ -1381,7 +1495,9 @@ body {
     }
     
     .lang-switcher,
-    .lang-switcher-floating,
+    .header-lang-switcher {
+        display: none; /* We will use a different approach for mobile */
+    }
     .lang-switcher-container {
         display: none !important;
     }
@@ -1391,3 +1507,295 @@ body {
     }
 }
 
+/* Insights & Updates Section */
+.insights {
+    padding: 100px 0;
+    background-color: var(--white);
+}
+
+.insights-filter {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 50px;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    border: 2px solid var(--light-grey);
+    background: transparent;
+    border-radius: 50px;
+    font-weight: 600;
+    color: var(--dark-grey);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-btn:hover, .filter-btn.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--white);
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+}
+
+.blog-card {
+    background: var(--white);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-light);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 35px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.blog-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.blog-card .blog-image-placeholder i {
+    transition: all 0.5s ease;
+}
+
+.blog-card:hover .blog-image-placeholder i {
+    transform: scale(1.25) rotate(8deg);
+    color: var(--primary);
+}
+
+.blog-card:hover h3 {
+    color: var(--primary-dark);
+}
+
+.blog-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    background-color: var(--light-grey);
+}
+
+.blog-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+}
+
+.blog-image-placeholder.dark {
+    background: linear-gradient(135deg, var(--dark), var(--dark-grey));
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.category-tag {
+    display: inline-block;
+    padding: 6px 15px;
+    background-color: var(--primary);
+    color: var(--white);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    z-index: 2;
+}
+
+.category-tag.gold {
+    background: var(--primary-dark);
+}
+
+.category-tag.dark {
+    background: var(--dark);
+}
+
+.blog-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.blog-content h3 {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.blog-content p {
+    font-size: 0.95rem;
+    color: var(--dark-grey);
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.read-more {
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-top: auto;
+}
+
+.read-more:hover {
+    gap: 12px;
+    color: var(--dark);
+}
+
+.insights-cta {
+    text-align: center;
+    padding: 30px;
+    background: rgba(255, 184, 0, 0.05);
+    border-radius: 15px;
+    margin-bottom: 60px;
+}
+
+.insights-cta p {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--dark-grey);
+}
+
+/* Subscribe Box */
+.subscribe-box {
+    background: linear-gradient(135deg, var(--dark), var(--dark-grey));
+    border-radius: 20px;
+    padding: 50px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    color: var(--white);
+    box-shadow: var(--shadow-medium);
+}
+
+.subscribe-content h3 {
+    color: var(--white);
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.subscribe-content p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.05rem;
+}
+
+.subscribe-box.small {
+    padding: 30px 40px;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.subscribe-box.small .subscribe-content h3 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+}
+
+.subscribe-box.small .subscribe-content p {
+    font-size: 0.9rem;
+}
+
+.subscribe-form {
+    display: flex;
+    gap: 10px;
+}
+
+.subscribe-form input {
+    flex-grow: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    outline: none;
+}
+
+.subscribe-form .btn {
+    flex-shrink: 0;
+}
+
+.subscribe-message {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.subscribe-message i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.subscribe-message h4 {
+    color: var(--white);
+    margin-bottom: 5px;
+    font-size: 1.2rem;
+}
+
+.subscribe-message p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0;
+}
+
+.subscribe-message.form-success-message {
+    background: rgba(40, 167, 69, 0.2);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    color: #4ade80;
+}
+
+.subscribe-message.form-success-message i {
+    color: #4ade80;
+}
+
+#subscribe-error.subscribe-message.form-success-message {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    color: #ff6b6b;
+}
+
+#subscribe-error.subscribe-message.form-success-message i {
+    color: #ff6b6b;
+}
+
+@media (max-width: 992px) {
+    .subscribe-box {
+        grid-template-columns: 1fr;
+        padding: 40px 30px;
+        text-align: center;
+        gap: 25px;
+    }
+}
+
+@media (max-width: 576px) {
+    .subscribe-form {
+        flex-direction: column;
+    }
+    
+    .subscribe-form input {
+        width: 100%;
+    }
+    
+    .subscribe-form .btn {
+        width: 100%;
+    }
+    
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+}

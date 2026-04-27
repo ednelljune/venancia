@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Venancia Consultancy | Your Pathway to Europe Starts Here</title>
+    <title>Venancia Consultancy Pty Ltd | Your Pathway to Europe Starts Here</title>
     <meta name="description"
         content="Venancia Consultancy Pty Ltd provides expert pathway consultancy for students and skilled professionals looking to build their future in Europe. Guidance for Poland, Norway, Spain, and more.">
 
@@ -28,21 +28,17 @@
         <div class="container">
             <nav class="nav-container">
                 <a href="#" class="logo">
-                    <img src="assets/logo.png" alt="Venancia Consultancy Logo">
-                    <span>Venancia Consultancy</span>
+                    <img src="assets/logo.png" alt="Venancia Consultancy Pty Ltd Logo">
+                    <span>Venancia Consultancy Pty Ltd</span>
                 </a>
 
                 <ul class="nav-links">
-                    <li><a href="#about">About</a></li>
                     <li><a href="#services">Services</a></li>
-                    <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#countries">Destinations</a></li>
-                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="blog.html">Insights & Opportunities</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
                 </ul>
 
                 <div class="header-ctas">
-                    <a href="tel:+61431996025" class="btn btn-outline desktop-only">Call Us</a>
-                    <a href="https://wa.me/61431996025" class="btn btn-primary desktop-only">Message Us</a>
                     <button class="mobile-menu-toggle" aria-label="Toggle menu">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -55,19 +51,17 @@
     <div class="mobile-menu">
         <button class="mobile-menu-close"><i class="fas fa-times"></i></button>
         <ul>
-            <li><a href="#about">About</a></li>
             <li><a href="#services">Services</a></li>
-            <li><a href="#how-it-works">How It Works</a></li>
-            <li><a href="#countries">Destinations</a></li>
-            <li><a href="#faq">FAQ</a></li>
+            <li><a href="blog.html">Insights & Opportunities</a></li>
+            <li><a href="#contact">Contact Us</a></li>
             <li><a href="tel:+61431996025">Call Us</a></li>
             <li><a href="https://wa.me/61431996025">Message Us on WhatsApp</a></li>
             <li class="mobile-lang-nav">
                 <div class="mobile-lang-header">
-                    <i class="fas fa-globe"></i>
+                    <i class="fas fa-language"></i>
                     <span>Select Language</span>
                 </div>
-                <div class="mobile-lang-grid">
+                <div class="mobile-lang-grid notranslate">
                     <a href="#" data-lang="en">English</a>
                     <a href="#" data-lang="id">Indonesian</a>
                     <a href="#" data-lang="ne">Nepali</a>
@@ -129,7 +123,7 @@
             <div class="container">
                 <div class="about-grid">
                     <div class="about-image" data-reveal="fade-right">
-                        <img src="assets/destinations.png" alt="Venancia Consultancy Office" class="img-main">
+                        <img src="assets/destinations.png" alt="Venancia Consultancy Pty Ltd Office" class="img-main">
                         <div class="about-experience">
                             <span class="exp-number">4</span>
                             <span class="exp-text">Years of Excellence <br>in Consultancy</span>
@@ -471,6 +465,13 @@
                                 </div>
                             </div>
                             <div class="info-item">
+                                <i class="fas fa-id-card"></i>
+                                <div>
+                                    <h5>ABN</h5>
+                                    <p>88 662 559 560</p>
+                                </div>
+                            </div>
+                            <div class="info-item">
                                 <i class="fas fa-envelope"></i>
                                 <div>
                                     <h5>Email Us</h5>
@@ -770,6 +771,38 @@
                 </div>
             </div>
         </section>
+
+        <!-- Subscription Section -->
+        <section class="subscribe-section" style="padding: 60px 0;">
+            <div class="container">
+                <div class="subscribe-box small" data-reveal="fade-up">
+                    <div class="subscribe-content">
+                        <h3>Stay Updated with Work & Study Opportunities in Europe</h3>
+                        <p>Be the first to know about new openings, pathway changes, and visa updates.</p>
+                    </div>
+                    <div class="subscribe-form-container">
+                        <form id="subscribe-form" class="subscribe-form" action="https://formsubmit.co/info@venancia.com.au" method="POST" target="formsubmit-subscribe-target">
+                            <input type="hidden" name="_subject" value="New Newsletter Subscription">
+                            <input type="hidden" name="_captcha" value="false">
+                            <input type="hidden" name="_template" value="table">
+                            <input type="email" id="subscribe-email" name="email" placeholder="Your email address" required>
+                            <button type="submit" class="btn btn-primary">Subscribe</button>
+                        </form>
+                        <iframe id="formsubmit-subscribe-target" name="formsubmit-subscribe-target" class="hidden" title="Subscribe form target"></iframe>
+                        <div id="subscribe-success" class="subscribe-message form-success-message hidden">
+                            <i class="fas fa-check-circle"></i>
+                            <h4>You’re subscribed!</h4>
+                            <p>We’ll keep you updated.</p>
+                        </div>
+                        <div id="subscribe-error" class="subscribe-message form-success-message hidden">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <h4>Something went wrong.</h4>
+                            <p>Please try again in a moment.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <!-- Footer -->
@@ -778,8 +811,8 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <a href="#" class="logo">
-                        <img src="assets/logo.png" alt="Venancia Consultancy Logo">
-                        <span>Venancia Consultancy</span>
+                        <img src="assets/logo.png" alt="Venancia Consultancy Pty Ltd Logo">
+                        <span>Venancia Consultancy Pty Ltd</span>
                     </a>
                     <p>Australia-based pathway consultancy helping you build a successful future in Europe. Expert
                         guidance, personalized support.</p>
@@ -811,18 +844,18 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Venancia Consultancy Pty Ltd. All rights reserved. | <a href="#">Privacy Policy</a></p>
+                <p>&copy; 2026 Venancia Consultancy Pty Ltd. ABN 88 662 559 560. All rights reserved. | <a href="#">Privacy Policy</a></p>
             </div>
         </div>
     </footer>
 
-    <!-- Floating Language Switcher -->
-    <div class="lang-switcher-floating">
-        <button class="lang-btn" aria-label="Select Language">
-            <i class="fas fa-globe"></i>
-        </button>
-        <div class="lang-dropdown">
-            <div class="lang-dropdown-inner">
+
+
+    <!-- Floating Action Group (WhatsApp + Translation) -->
+    <div class="whatsapp-wrapper">
+        <div class="floating-lang-options">
+            <p style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; color: var(--dark-grey); text-align: center; text-transform: uppercase; letter-spacing: 1px;">Select Language</p>
+            <div class="floating-lang-grid notranslate">
                 <a href="#" data-lang="en">English</a>
                 <a href="#" data-lang="tl">Tagalog</a>
                 <a href="#" data-lang="si">Sinhala</a>
@@ -831,27 +864,15 @@
                 <a href="#" data-lang="pl">Polish</a>
                 <a href="#" data-lang="no">Norwegian</a>
                 <a href="#" data-lang="es">Spanish</a>
-                <a href="#" data-lang="fr">French</a>
-                <a href="#" data-lang="de">German</a>
                 <a href="#" data-lang="zh-CN">Chinese</a>
                 <a href="#" data-lang="ja">Japanese</a>
-                <a href="#" data-lang="ko">Korean</a>
-                <a href="#" data-lang="ar">Arabic</a>
-                <a href="#" data-lang="hi">Hindi</a>
-                <a href="#" data-lang="vi">Vietnamese</a>
-                <a href="#" data-lang="pt">Portuguese</a>
-                <a href="#" data-lang="ru">Russian</a>
-                <a href="#" data-lang="it">Italian</a>
-                <a href="#" data-lang="th">Thai</a>
             </div>
         </div>
+        <a href="https://wa.me/61431996025" class="whatsapp-sticky" aria-label="Quick WhatsApp Message">
+            <span class="whatsapp-tooltip">Message Us</span>
+            <i class="fab fa-whatsapp"></i>
+        </a>
     </div>
-
-    <!-- Sticky WhatsApp Button -->
-    <a href="https://wa.me/61431996025" class="whatsapp-sticky" aria-label="Quick WhatsApp Message">
-        <span class="whatsapp-tooltip">Message Us</span>
-        <i class="fab fa-whatsapp"></i>
-    </a>
 
     <div id="google_translate_element" style="display:none"></div>
     <script>

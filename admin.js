@@ -1,7 +1,13 @@
 // Admin Dashboard Logic for Venancia Consultancy
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const session = await window.VenanciaSupabaseAuth.requireSession().catch(() => null);
+    const auth = window.VenanciaSupabaseAuth;
+    if (!auth || typeof auth.requireSession !== 'function') {
+        window.location.href = 'admin-login.html';
+        return;
+    }
+
+    const session = await auth.requireSession().catch(() => null);
     if (!session) {
         window.location.href = 'admin-login.html';
         return;
@@ -328,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     logoutBtn.addEventListener('click', async () => {
-        await window.VenanciaSupabaseAuth.signOut().catch(() => null);
+        await auth.signOut().catch(() => null);
         window.location.href = 'admin-login.html';
     });
 

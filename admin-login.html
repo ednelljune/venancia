@@ -362,6 +362,51 @@
             }, 3000);
         };
 
+        const auth = window.VenanciaSupabaseAuth || {
+            async getConfig() {
+                if (window.VENANCIA_RUNTIME_CONFIG) {
+                    return window.VENANCIA_RUNTIME_CONFIG;
+                }
+
+                const response = await fetch('/api/config', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Unable to load authentication config (${response.status}).`);
+                }
+
+                return response.json();
+            },
+            async signInWithPassword(email, password) {
+                const config = await this.getConfig();
+
+                if (!config.authEnabled) {
+                    throw new Error('Supabase Auth is not configured for this environment.');
+                }
+
+                const response = await fetch(`${config.supabaseUrl}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        apikey: config.supabaseAnonKey,
+                        Authorization: `Bearer ${config.supabaseAnonKey}`
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error_description || data.msg || data.error || 'Unable to sign in.');
+                }
+
+                localStorage.setItem('venancia_supabase_session', JSON.stringify(data));
+                return data;
+            },
+            async requireSession() {
+                return null;
+            }
+        };
+
+        window.VenanciaSupabaseAuth = auth;
+
         document.addEventListener('DOMContentLoaded', async () => {
             // Password toggle logic
             const togglePassword = document.getElementById('toggle-password');
@@ -374,7 +419,10 @@
                 this.classList.toggle('fa-eye-slash');
             });
 
-            const session = await window.VenanciaSupabaseAuth.requireSession().catch(() => null);
+            const session = await auth.requireSession().catch((error) => {
+                showError(error.message || 'Unable to load authentication config.');
+                return null;
+            });
             if (session) {
                 window.location.href = 'admin-dashboard.html';
             }
@@ -389,7 +437,7 @@
             submitBtn.innerText = 'Signing in...';
 
             try {
-                await window.VenanciaSupabaseAuth.signInWithPassword(email, pass);
+                await auth.signInWithPassword(email, pass);
                 window.location.href = 'admin-dashboard.html';
             } catch (error) {
                 showError(error.message || 'Invalid credentials. Please try again.');

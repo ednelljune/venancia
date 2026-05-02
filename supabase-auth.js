@@ -25,6 +25,10 @@
     }
 
     async function getConfig() {
+        if (window.VENANCIA_RUNTIME_CONFIG) {
+            return window.VENANCIA_RUNTIME_CONFIG;
+        }
+
         const cached = sessionStorage.getItem(CONFIG_KEY);
         if (cached) {
             try {
@@ -36,7 +40,7 @@
 
         const response = await fetch('/api/config', { cache: 'no-store' });
         if (!response.ok) {
-            throw new Error('Unable to load authentication config.');
+            throw new Error(`Unable to load authentication config (${response.status}).`);
         }
 
         const config = await response.json();

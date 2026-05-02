@@ -347,7 +347,16 @@ function serveStatic(req, res, pathname) {
 
     const ext = extname(filePath).toLowerCase();
     const contentType = mimeTypes[ext] || 'application/octet-stream';
-    const data = readFileSync(filePath);
+    let data = readFileSync(filePath);
+
+    if ((relativePath === '/admin-login.html' || relativePath === '/admin-dashboard.html') && contentType.includes('text/html')) {
+        const injectedConfig = `<script>window.VENANCIA_RUNTIME_CONFIG=${JSON.stringify({
+            supabaseUrl,
+            supabaseAnonKey,
+            authEnabled: Boolean(supabaseUrl && supabaseAnonKey)
+        })};</script>`;
+        data = Buffer.from(String(data).replace('<head>', `<head>${injectedConfig}`));
+    }
 
     res.writeHead(200, {
         'Content-Type': contentType,

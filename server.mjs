@@ -8,6 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = resolve(__filename, '..');
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || '127.0.0.1';
+const publicApiBaseUrl = process.env.PUBLIC_API_BASE_URL || '';
 const publicRoot = __dirname;
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '') || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -36,6 +37,25 @@ function contentHeaders(extra = {}) {
         apikey: supabaseServiceKey,
         Authorization: `Bearer ${supabaseServiceKey}`,
         ...extra
+    };
+}
+
+function corsHeaders(origin) {
+    const allowedOrigins = new Set([
+        'https://venancia.onrender.com',
+        'https://www.venancia.com.au',
+        'https://venancia.com.au'
+    ]);
+
+    const resolvedOrigin = origin || '';
+    if (!allowedOrigins.has(resolvedOrigin)) {
+        return {};
+    }
+
+    return {
+        'Access-Control-Allow-Origin': resolvedOrigin,
+        'Access-Control-Allow-Credentials': 'true',
+        Vary: 'Origin'
     };
 }
 
@@ -407,8 +427,20 @@ async function getContentPayload() {
 
 const server = createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
+    const origin = req.headers.origin || '';
 
     try {
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+                ...corsHeaders(origin),
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, Prefer',
+                'Access-Control-Max-Age': '86400'
+            });
+            res.end();
+            return;
+        }
+
         if (url.pathname === '/healthz' && req.method === 'GET') {
             sendJson(res, 200, {
                 ok: true,
@@ -418,11 +450,16 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname === '/api/config' && req.method === 'GET') {
-            sendJson(res, 200, {
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({
                 supabaseUrl,
                 supabaseAnonKey,
                 authEnabled: Boolean(supabaseUrl && supabaseAnonKey)
-            });
+            }));
             return;
         }
 
@@ -432,13 +469,23 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname === '/api/content' && req.method === 'GET') {
-            sendJson(res, 200, await getContentPayload());
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify(await getContentPayload()));
             return;
         }
 
         if (url.pathname === '/api/posts' && req.method === 'GET') {
             await store.ensureSeeded();
-            sendJson(res, 200, { posts: await store.listPosts() });
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({ posts: await store.listPosts() }));
             return;
         }
 
@@ -449,11 +496,21 @@ const server = createServer(async (req, res) => {
                 await store.ensureSeeded();
                 const post = await store.getPost(id);
                 if (!post) {
-                    sendJson(res, 404, { error: 'Post not found' });
-                    return;
-                }
+                res.writeHead(404, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ error: 'Post not found' }));
+                return;
+            }
 
-                sendJson(res, 200, { post });
+                res.writeHead(200, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ post }));
                 return;
             }
 
@@ -461,11 +518,21 @@ const server = createServer(async (req, res) => {
                 await store.ensureSeeded();
                 const deleted = await store.deletePost(id);
                 if (!deleted) {
-                    sendJson(res, 404, { error: 'Post not found' });
+                    res.writeHead(404, {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Cache-Control': 'no-store',
+                        ...corsHeaders(origin)
+                    });
+                    res.end(JSON.stringify({ error: 'Post not found' }));
                     return;
                 }
 
-                sendJson(res, 200, { ok: true });
+                res.writeHead(200, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ ok: true }));
                 return;
             }
 
@@ -473,7 +540,12 @@ const server = createServer(async (req, res) => {
                 await store.ensureSeeded();
                 const body = await parseBody(req);
                 const post = await store.upsertPost({ ...body, id }, id);
-                sendJson(res, 200, { post });
+                res.writeHead(200, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ post }));
                 return;
             }
         }
@@ -482,16 +554,26 @@ const server = createServer(async (req, res) => {
             await store.ensureSeeded();
             const body = await parseBody(req);
             const post = await store.upsertPost(body);
-            sendJson(res, 201, { post });
+            res.writeHead(201, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({ post }));
             return;
         }
 
         serveStatic(req, res, url.pathname);
     } catch (error) {
         const statusCode = Number(error.statusCode || 500);
-        sendJson(res, statusCode, {
-            error: error.message || 'Unexpected server error'
+        res.writeHead(statusCode, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store',
+            ...corsHeaders(origin)
         });
+        res.end(JSON.stringify({
+            error: error.message || 'Unexpected server error'
+        }));
     }
 });
 

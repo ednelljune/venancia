@@ -348,6 +348,7 @@
         </div>
     </div>
 
+    <script src="/api-base.js"></script>
     <script src="/supabase-auth.js"></script>
     <script>
         const form = document.getElementById('admin-login-form');
@@ -368,7 +369,8 @@
                     return window.VENANCIA_RUNTIME_CONFIG;
                 }
 
-                const response = await fetch('/api/config', { cache: 'no-store' });
+                const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+                const response = await fetch(`${apiBaseUrl}/api/config`, { cache: 'no-store' });
                 if (!response.ok) {
                     throw new Error(`Unable to load authentication config (${response.status}).`);
                 }

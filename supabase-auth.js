@@ -1,6 +1,7 @@
 (function () {
     const SESSION_KEY = 'venancia_supabase_session';
     const CONFIG_KEY = 'venancia_supabase_config';
+    const API_BASE_KEY = 'venancia_api_base';
 
     const legacyFallback = {
         username: 'admin',
@@ -38,7 +39,8 @@
             }
         }
 
-        const response = await fetch('/api/config', { cache: 'no-store' });
+        const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+        const response = await fetch(`${apiBaseUrl}/api/config`, { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`Unable to load authentication config (${response.status}).`);
         }
@@ -46,6 +48,25 @@
         const config = await response.json();
         sessionStorage.setItem(CONFIG_KEY, JSON.stringify(config));
         return config;
+    }
+
+    async function getApiBaseUrl() {
+        if (window.VENANCIA_RUNTIME_CONFIG?.apiBaseUrl) {
+            return window.VENANCIA_RUNTIME_CONFIG.apiBaseUrl;
+        }
+
+        const cached = sessionStorage.getItem(API_BASE_KEY);
+        if (cached) {
+            return cached;
+        }
+
+        const currentHost = window.location.hostname;
+        const apiBaseUrl = currentHost === 'www.venancia.com.au' || currentHost === 'venancia.com.au'
+            ? 'https://venancia.onrender.com'
+            : '';
+
+        sessionStorage.setItem(API_BASE_KEY, apiBaseUrl);
+        return apiBaseUrl;
     }
 
     async function requestAuth(path, options = {}) {
@@ -225,6 +246,7 @@
 
     window.VenanciaSupabaseAuth = {
         getConfig,
+        getApiBaseUrl,
         readSession,
         saveSession,
         clearSession,

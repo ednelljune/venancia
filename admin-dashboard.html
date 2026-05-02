@@ -483,9 +483,24 @@
         </div>
     </div>
 
-    <script src="/api/content.js"></script>
-    <script src="/supabase-auth.js"></script>
-    <script src="admin.js"></script>
+    <script src="/api-base.js"></script>
+    <script>
+        (function () {
+            const contentScript = document.createElement('script');
+            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
+            contentScript.onload = () => {
+                const authScript = document.createElement('script');
+                authScript.src = '/supabase-auth.js';
+                authScript.onload = () => {
+                    const appScript = document.createElement('script');
+                    appScript.src = 'admin.js';
+                    document.body.appendChild(appScript);
+                };
+                document.body.appendChild(authScript);
+            };
+            document.head.appendChild(contentScript);
+        })();
+    </script>
 </body>
 
 </html>

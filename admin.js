@@ -2,6 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     const auth = window.VenanciaSupabaseAuth;
+    const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+
     if (!auth || typeof auth.requireSession !== 'function') {
         window.location.href = 'admin-login.html';
         return;
@@ -194,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return;
                 }
 
-                const response = await fetch(`/api/posts/${encodeURIComponent(id)}`, {
+                const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, {
                     method: 'DELETE'
                 });
 
@@ -251,19 +253,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let response;
         if (editId && editId !== id) {
-            response = await fetch('/api/posts', {
+            response = await fetch(`${apiBaseUrl}/api/posts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
         } else if (editId) {
-            response = await fetch(`/api/posts/${encodeURIComponent(id)}`, {
+            response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
         } else {
-            response = await fetch('/api/posts', {
+            response = await fetch(`${apiBaseUrl}/api/posts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -279,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const savedPost = result.post;
 
         if (editId && editId !== id) {
-            const deleteResponse = await fetch(`/api/posts/${encodeURIComponent(editId)}`, {
+            const deleteResponse = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(editId)}`, {
                 method: 'DELETE'
             });
 

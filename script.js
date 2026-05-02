@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+const initVenanciaSite = () => {
     // 1. Mobile Menu Toggle
     const menuToggle = document.querySelector('.mobile-menu-toggle');
     const menuClose = document.querySelector('.mobile-menu-close');
@@ -646,4 +646,10 @@ document.addEventListener('DOMContentLoaded', () => {
             subscribeFormBlog.submit();
         });
     }
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVenanciaSite, { once: true });
+} else {
+    initVenanciaSite();
+}

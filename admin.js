@@ -1,6 +1,6 @@
 // Admin Dashboard Logic for Venancia Consultancy
 
-document.addEventListener('DOMContentLoaded', async () => {
+const initVenanciaAdmin = async () => {
     const auth = window.VenanciaSupabaseAuth;
     const apiBaseUrl = window.VenanciaApiBaseUrl || '';
 
@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let posts = Array.isArray(serverContent.posts) ? serverContent.posts : [];
     let activeTab = window.VENANCIA_ACTIVE_PAGE || 'overview';
 
-    const postsTableBody = document.getElementById('overview-table-body');
+    const overviewTableBody = document.getElementById('overview-table-body');
+    const blogTableBody = document.getElementById('blog-table-body');
+    const announcementsTableBody = document.getElementById('announcements-table-body');
     const postModal = document.getElementById('post-modal');
     const exportModal = document.getElementById('export-modal');
     const postForm = document.getElementById('post-form');
@@ -77,6 +79,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isBlogTab = () => activeTab === 'blog';
     const isSettingsTab = () => activeTab === 'settings';
 
+    const getTableBody = () => {
+        if (isBlogTab()) return blogTableBody || overviewTableBody || announcementsTableBody;
+        if (isAnnouncementTab()) return announcementsTableBody || overviewTableBody || blogTableBody;
+        return overviewTableBody || blogTableBody || announcementsTableBody;
+    };
+
     const getSettingsRows = () => {
         const backendBase = window.VenanciaApiBaseUrl || window.location.origin;
         return [
@@ -128,46 +136,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (isAnnouncementTab()) {
             tabTitle.innerText = 'Announcement Manager';
             tabSubtitle.innerText = 'Create and maintain featured announcements';
-            tableTitle.innerText = 'Featured Announcements';
-            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Announcement';
-            addPostBtn.disabled = false;
-            tableHead.innerHTML = `
-                <th>Post Title</th>
-                <th>Type</th>
-                <th>Date Published</th>
-                <th>Read Time</th>
-                <th>Actions</th>
-            `;
+            if (tableTitle) tableTitle.innerText = 'Featured Announcements';
+            if (addPostBtn) {
+                addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Announcement';
+                addPostBtn.disabled = false;
+            }
+            if (tableHead) {
+                tableHead.innerHTML = `
+                    <th>Post Title</th>
+                    <th>Type</th>
+                    <th>Date Published</th>
+                    <th>Read Time</th>
+                    <th>Actions</th>
+                `;
+            }
             return;
         }
 
         if (isBlogTab()) {
             tabTitle.innerText = 'Blog Manager';
             tabSubtitle.innerText = 'Create and maintain blog posts';
-            tableTitle.innerText = 'Blog Posts';
-            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
-            addPostBtn.disabled = false;
-            tableHead.innerHTML = `
-                <th>Post Title</th>
-                <th>Type</th>
-                <th>Date Published</th>
-                <th>Read Time</th>
-                <th>Actions</th>
-            `;
+            if (tableTitle) tableTitle.innerText = 'Blog Posts';
+            if (addPostBtn) {
+                addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
+                addPostBtn.disabled = false;
+            }
+            if (tableHead) {
+                tableHead.innerHTML = `
+                    <th>Post Title</th>
+                    <th>Type</th>
+                    <th>Date Published</th>
+                    <th>Read Time</th>
+                    <th>Actions</th>
+                `;
+            }
             return;
         }
 
         tabTitle.innerText = 'Dashboard Overview';
         tabSubtitle.innerText = 'Welcome back, Admin';
-        tableTitle.innerText = 'Recent Activity';
-        addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Entry';
-        addPostBtn.disabled = false;
-        tableHead.innerHTML = `
-            <th>Title</th>
-            <th>Type</th>
-            <th>Date</th>
-            <th>Actions</th>
-        `;
+        if (tableTitle) tableTitle.innerText = 'Recent Activity';
+        if (addPostBtn) {
+            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Entry';
+            addPostBtn.disabled = false;
+        }
+        if (tableHead) {
+            tableHead.innerHTML = `
+                <th>Title</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Actions</th>
+            `;
+        }
     };
 
     const renderPostsTable = () => {
@@ -175,7 +195,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const visiblePosts = getVisiblePosts();
         if (isSettingsTab()) {
-            postsTableBody.innerHTML = getSettingsRows().map((row) => `
+            const settingsBody = getTableBody();
+            if (!settingsBody) return;
+            settingsBody.innerHTML = getSettingsRows().map((row) => `
                 <tr>
                     <td class="post-title-cell">${escapeHtml(row.name)}</td>
                     <td>${escapeHtml(row.value)}</td>
@@ -208,8 +230,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const body = getTableBody();
+        if (!body) {
+            return;
+        }
+
         if (visiblePosts.length === 0) {
-            postsTableBody.innerHTML = `
+            body.innerHTML = `
                 <tr>
                     <td colspan="5" style="padding: 28px; text-align: center; color: var(--dark-grey);">
                         No ${isAnnouncementTab() ? 'announcements' : isBlogTab() ? 'blog posts' : 'entries'} available yet.
@@ -219,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        postsTableBody.innerHTML = visiblePosts.map((post) => {
+        body.innerHTML = visiblePosts.map((post) => {
             const rowType = post.isAnnouncement ? 'Announcement' : 'Blog';
             const rowTypeClass = post.isAnnouncement ? 'gold' : '';
             const readTime = post.readTime || '';
@@ -415,4 +442,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateStats();
     renderPostsTable();
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initVenanciaAdmin();
+    }, { once: true });
+} else {
+    initVenanciaAdmin();
+}

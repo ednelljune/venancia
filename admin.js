@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const serverContent = window.VENANCIA_CONTENT || {};
     let posts = Array.isArray(serverContent.posts) ? serverContent.posts : [];
-    let activeTab = 'overview';
+    let activeTab = window.VENANCIA_ACTIVE_PAGE || 'overview';
 
     const postsTableBody = document.getElementById('posts-table-body');
     const postModal = document.getElementById('post-modal');
@@ -74,37 +74,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const isAnnouncementTab = () => activeTab === 'announcements';
-    const isSettingsTab = () => activeTab === 'settings';
-
-    const getSettingsRows = () => {
-        const backendBase = window.VenanciaApiBaseUrl || window.location.origin;
-        return [
-            {
-                name: 'Signed-in admin',
-                value: authUser?.email || session?.user?.email || 'Unknown',
-                status: 'Active',
-                notes: 'Current authenticated Supabase user'
-            },
-            {
-                name: 'Authentication',
-                value: authConfig?.authEnabled ? 'Supabase Auth' : 'Legacy fallback',
-                status: authConfig?.authEnabled ? 'Active' : 'Limited',
-                notes: authConfig?.authEnabled ? 'Email/password login enabled' : 'Development fallback only'
-            },
-            {
-                name: 'Content backend',
-                value: backendBase,
-                status: 'Connected',
-                notes: 'API requests are routed here from the website'
-            },
-            {
-                name: 'Posts table',
-                value: 'public.posts',
-                status: 'Required',
-                notes: 'This table must exist in Supabase for content to load'
-            }
-        ];
-    };
 
     const getVisiblePosts = () => {
         if (activeTab === 'announcements') {
@@ -120,107 +89,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const syncTabUI = () => {
+        // Toggle tab visibility
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        const activeTabContent = document.getElementById(`${activeTab}-tab`);
+        if (activeTabContent) activeTabContent.style.display = 'block';
+
         if (isAnnouncementTab()) {
             tabTitle.innerText = 'Announcement Manager';
             tabSubtitle.innerText = 'Create and maintain featured announcements';
-            tableTitle.innerText = 'Featured Announcements';
-            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Announcement';
-            addPostBtn.disabled = false;
-            tableHead.innerHTML = `
-                <th>Post Title</th>
-                <th>Category</th>
-                <th>Date Published</th>
-                <th>Read Time</th>
-                <th>Actions</th>
-            `;
-            return;
-        }
-
-        if (isSettingsTab()) {
-            tabTitle.innerText = 'Settings';
-            tabSubtitle.innerText = 'Review admin access, backend routing, and content storage';
-            tableTitle.innerText = 'Admin Settings';
-            addPostBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Status';
-            addPostBtn.disabled = false;
-            tableHead.innerHTML = `
-                <th>Setting</th>
-                <th>Value</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th>Actions</th>
-            `;
             return;
         }
 
         tabTitle.innerText = activeTab === 'blog' ? 'Blog Manager' : 'Dashboard Overview';
         tabSubtitle.innerText = 'Welcome back, Admin';
-        tableTitle.innerText = 'Recent Blog Posts';
-        addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
-        addPostBtn.disabled = false;
-        tableHead.innerHTML = `
-            <th>Post Title</th>
-            <th>Category</th>
-            <th>Date Published</th>
-            <th>Read Time</th>
-            <th>Actions</th>
-        `;
     };
 
     const renderPostsTable = () => {
         syncTabUI();
 
         const visiblePosts = getVisiblePosts();
-        if (isSettingsTab()) {
-            postsTableBody.innerHTML = getSettingsRows().map((row) => `
+        
+        // Populate Overview
+        if (activeTab === 'overview') {
+            const overviewBody = document.getElementById('overview-table-body');
+            const allPosts = sortPosts(posts);
+            overviewBody.innerHTML = allPosts.slice(0, 10).map(post => `
                 <tr>
-                    <td class="post-title-cell">${escapeHtml(row.name)}</td>
-                    <td>${escapeHtml(row.value)}</td>
-                    <td><span class="status-badge active">${escapeHtml(row.status)}</span></td>
-                    <td>${escapeHtml(row.notes)}</td>
+                    <td class="post-title-cell">${escapeHtml(post.title)}</td>
+                    <td><span class="category-tag ${post.isAnnouncement ? 'gold' : ''}">${post.isAnnouncement ? 'Announcement' : 'Blog'}</span></td>
+                    <td>${escapeHtml(post.date)}</td>
                     <td>
                         <div class="action-btns">
-                            <button class="btn-icon" type="button" title="Copy value" data-copy="${escapeHtml(row.value)}">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                            <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
                         </div>
                     </td>
                 </tr>
             `).join('');
-
-            document.querySelectorAll('[data-copy]').forEach((btn) => {
-                btn.addEventListener('click', async () => {
-                    const value = btn.getAttribute('data-copy') || '';
-                    try {
-                        await navigator.clipboard.writeText(value);
-                        btn.innerHTML = '<i class="fas fa-check"></i>';
-                        setTimeout(() => {
-                            btn.innerHTML = '<i class="fas fa-copy"></i>';
-                        }, 1200);
-                    } catch (error) {
-                        alert('Unable to copy this value.');
-                    }
-                });
-            });
-            return;
         }
 
-        if (visiblePosts.length === 0) {
-            postsTableBody.innerHTML = `
-                <tr>
-                    <td colspan="5" style="padding: 32px; text-align: center; color: var(--dark-grey);">
-                        No posts found for this view.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        postsTableBody.innerHTML = visiblePosts.map((post) => {
-            const tagClass = post.tagClass || categoryTagClass(post.category);
-            return `
+        // Populate Blog
+        if (activeTab === 'blog') {
+            const blogBody = document.getElementById('blog-table-body');
+            blogBody.innerHTML = visiblePosts.map(post => `
                 <tr>
                     <td class="post-title-cell">${escapeHtml(post.title)}</td>
-                    <td><span class="category-tag ${tagClass}">${escapeHtml(post.category)}</span></td>
+                    <td><span class="category-tag ${categoryTagClass(post.category)}">${escapeHtml(post.category)}</span></td>
                     <td>${escapeHtml(post.date)}</td>
                     <td>${escapeHtml(post.readTime)}</td>
                     <td>
@@ -230,9 +145,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     </td>
                 </tr>
-            `;
-        }).join('');
+            `).join('');
+        }
 
+        // Populate Announcements
+        if (activeTab === 'announcements') {
+            const announceBody = document.getElementById('announcements-table-body');
+            announceBody.innerHTML = visiblePosts.map(post => `
+                <tr>
+                    <td class="post-title-cell">${escapeHtml(post.title)}</td>
+                    <td><span class="category-tag gold">${escapeHtml(post.category)}</span></td>
+                    <td>${escapeHtml(post.date)}</td>
+                    <td><span class="status-badge active">Live</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon delete delete-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Re-attach event listeners for edit/delete buttons in any tab
         document.querySelectorAll('.edit-post').forEach((btn) => {
             btn.addEventListener('click', () => {
                 openEditModal(btn.getAttribute('data-id'));
@@ -243,23 +178,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 const target = posts.find((post) => post.id === id);
+                if (!target || !confirm(`Are you sure you want to delete "${target.title}"?`)) return;
 
-                if (!target) {
-                    return;
-                }
-
-                if (!confirm(`Are you sure you want to delete "${target.title}"?`)) {
-                    return;
-                }
-
-                const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, {
-                    method: 'DELETE'
-                });
-
-                if (!response.ok) {
-                    alert('Failed to delete the post.');
-                    return;
-                }
+                const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                if (!response.ok) { alert('Failed to delete the post.'); return; }
 
                 posts = posts.filter((post) => post.id !== id);
                 updateStats();
@@ -354,29 +276,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         postModal.style.display = 'none';
     };
 
-    tabLinks.forEach((link) => {
-        link.addEventListener('click', (event) => {
-            event.preventDefault();
-            const tab = link.getAttribute('data-tab');
-            activeTab = tab || 'overview';
+    // Navigation is handled by separate HTML pages now
 
-            tabLinks.forEach((item) => item.classList.remove('active'));
-            link.classList.add('active');
-            renderPostsTable();
+    document.querySelectorAll('.add-post-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (isSettingsTab()) {
+                window.location.reload();
+                return;
+            }
+            openCreateModal();
         });
-    });
-
-    addPostBtn.addEventListener('click', () => {
-        if (isSettingsTab()) {
-            window.location.reload();
-            return;
-        }
-
-        if (addPostBtn.disabled) {
-            return;
-        }
-
-        openCreateModal();
     });
 
     closeModalButtons.forEach((btn) => {

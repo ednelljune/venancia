@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Announcements | Venancia Consultancy Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --dashboard-bg: #f8f9fa;
+            --admin-primary: var(--primary);
+            --admin-dark: var(--dark);
+        }
+
+        body {
+            background-color: var(--dashboard-bg);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--admin-dark);
+            color: white;
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 0 30px 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand img {
+            height: 35px;
+        }
+
+        .sidebar-brand span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--admin-primary);
+        }
+
+        .sidebar-footer {
+            padding: 20px 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 40px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        /* Data Tables */
+        .data-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .card-header h2 {
+            font-size: 1.4rem;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid var(--dashboard-bg);
+            color: var(--dark-grey);
+            font-weight: 600;
+        }
+
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--dashboard-bg);
+            vertical-align: middle;
+        }
+
+        .post-title-cell {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            color: var(--dark-grey);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-icon:hover {
+            border-color: var(--admin-primary);
+            color: var(--admin-primary);
+        }
+
+        .btn-icon.delete:hover {
+            border-color: #f44336;
+            color: #f44336;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            border-radius: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-grey);
+        }
+
+        .admin-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .admin-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .admin-form input, .admin-form select, .admin-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .admin-form textarea {
+            height: 150px;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar { width: 80px; }
+            .sidebar-brand span, .nav-item span { display: none; }
+            .main-content { margin-left: 80px; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="assets/logo.png" alt="Venancia Logo">
+            <span>Venancia Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="admin-dashboard.html" class="nav-item">
+                <i class="fas fa-th-large"></i> <span>Overview</span>
+            </a>
+            <a href="manage-blog.html" class="nav-item">
+                <i class="fas fa-newspaper"></i> <span>Manage Blog</span>
+            </a>
+            <a href="manage-announcement.html" class="nav-item active">
+                <i class="fas fa-bullhorn"></i> <span>Manage Announcements</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" id="logout-btn" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="page-title">
+                <h1>Announcement Manager</h1>
+                <p>Maintain your featured announcements and urgent news.</p>
+            </div>
+            <div class="top-actions">
+                <button class="btn btn-primary add-post-btn" data-type="announcement"><i class="fas fa-plus"></i> New Announcement</button>
+            </div>
+        </header>
+
+        <div class="data-card">
+            <div class="card-header">
+                <h2>All Announcements</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Announcement Title</th>
+                            <th>Priority</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcements-table-body">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal remains the same -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Create New Announcement</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <form id="post-form" class="admin-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="post-title-input">Title</label>
+                    <input type="text" id="post-title-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="post-category-input">Priority</label>
+                    <select id="post-category-input" required>
+                        <option value="URGENT">URGENT</option>
+                        <option value="NEW POLICY">NEW POLICY</option>
+                        <option value="IMPORTANT">IMPORTANT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="post-date-input">Date</label>
+                    <input type="text" id="post-date-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="post-id-input">URL Slug (Post ID)</label>
+                    <input type="text" id="post-id-input" required>
+                </div>
+                <div class="form-group" style="display: none;">
+                    <input type="checkbox" id="post-announcement-input" checked>
+                    <label for="post-announcement-input">Announcement</label>
+                </div>
+                <div class="form-group">
+                    <label for="post-content-input">Content (HTML)</label>
+                    <textarea id="post-content-input" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Announcement</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/api-base.js"></script>
+    <script>
+        // Set active tab for JS
+        window.VENANCIA_ACTIVE_PAGE = 'announcements';
+    </script>
+    <script src="/supabase-auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

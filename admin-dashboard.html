@@ -498,12 +498,16 @@
                 document.body.appendChild(authScript);
             };
 
-            const contentScript = document.createElement('script');
-            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
-            contentScript.onload = loadDashboardScripts;
-            contentScript.onerror = loadDashboardScripts;
-            document.head.appendChild(contentScript);
-            setTimeout(loadDashboardScripts, 1500);
+            const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+            fetch(`${apiBaseUrl}/api/content`, { cache: 'no-store' })
+                .then((response) => response.ok ? response.json() : Promise.reject(response))
+                .then((payload) => {
+                    window.VENANCIA_CONTENT = payload;
+                })
+                .catch(() => {
+                    window.VENANCIA_CONTENT = window.VENANCIA_CONTENT || {};
+                })
+                .finally(loadDashboardScripts);
         })();
     </script>
 </body>

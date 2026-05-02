@@ -353,11 +353,36 @@
 
     <script src="/api-base.js"></script>
     <script>
-        // Set active tab for JS
-        window.VENANCIA_ACTIVE_PAGE = 'announcements';
+        (function () {
+            window.VENANCIA_ACTIVE_PAGE = 'announcements';
+            let loaded = false;
+            const boot = () => {
+                if (loaded) {
+                    return;
+                }
+                loaded = true;
+                const authScript = document.createElement('script');
+                authScript.src = '/supabase-auth.js';
+                authScript.onload = () => {
+                    const appScript = document.createElement('script');
+                    appScript.src = 'admin.js';
+                    document.body.appendChild(appScript);
+                };
+                document.body.appendChild(authScript);
+            };
+
+            const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+            fetch(`${apiBaseUrl}/api/content`, { cache: 'no-store' })
+                .then((response) => response.ok ? response.json() : Promise.reject(response))
+                .then((payload) => {
+                    window.VENANCIA_CONTENT = payload;
+                })
+                .catch(() => {
+                    window.VENANCIA_CONTENT = window.VENANCIA_CONTENT || {};
+                })
+                .finally(boot);
+        })();
     </script>
-    <script src="/supabase-auth.js"></script>
-    <script src="admin.js"></script>
 </body>
 
 </html>

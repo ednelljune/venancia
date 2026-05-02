@@ -435,6 +435,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!grid) return;
 
         const announcements = getAnnouncements();
+        if (announcements.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 28px; border: 1px dashed rgba(255,255,255,0.25); border-radius: 18px; color: rgba(255,255,255,0.75); text-align: center;">
+                    No announcements available yet. New announcements will appear here once they are added in the admin dashboard.
+                </div>
+            `;
+            return;
+        }
+
         grid.innerHTML = announcements.map((post) => {
             const tagClass = post.tagClass || categoryTagClass(post.category);
             return `
@@ -453,6 +462,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!grid) return;
 
         const posts = getVisiblePosts();
+        if (posts.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 32px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 18px; color: var(--dark-grey); text-align: center; background: rgba(255,255,255,0.8);">
+                    No blog posts available yet. Once a new post is published in the admin dashboard, it will appear here automatically.
+                </div>
+            `;
+            return;
+        }
+
         grid.innerHTML = posts.map((post) => {
             const tagClass = post.tagClass || categoryTagClass(post.category);
             return `
@@ -479,6 +497,15 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter((post) => post.id !== currentPostId)
             .slice(0, 3);
 
+        if (relatedPosts.length === 0) {
+            grid.innerHTML = `
+                <div style="padding: 28px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 18px; background: white; color: var(--dark-grey); text-align: center;">
+                    No related posts available yet.
+                </div>
+            `;
+            return;
+        }
+
         grid.innerHTML = relatedPosts.map((post) => {
             const tagClass = post.tagClass || categoryTagClass(post.category);
             return `
@@ -504,6 +531,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const post = allPosts.find((entry) => entry.id === postId) || getVisiblePosts()[0];
 
         if (!post) {
+            const titleEl = document.getElementById('post-title');
+            const breadcrumbEl = document.getElementById('breadcrumb-title');
+            const catEl = document.getElementById('post-category');
+            const contentEl = document.getElementById('post-content');
+            const relatedGrid = document.getElementById('related-posts-grid');
+
+            if (titleEl) titleEl.innerText = 'No article available';
+            if (breadcrumbEl) breadcrumbEl.innerText = 'No article available';
+            if (catEl) {
+                catEl.innerText = 'EMPTY';
+                catEl.className = 'category-tag';
+            }
+            if (contentEl) {
+                contentEl.innerHTML = `
+                    <p>There are no published articles yet. Once an admin adds a blog post in the database, it will appear here automatically.</p>
+                `;
+            }
+            if (relatedGrid) {
+                relatedGrid.innerHTML = `
+                    <div style="padding: 28px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 18px; background: white; color: var(--dark-grey); text-align: center;">
+                        Related posts will appear after articles are published.
+                    </div>
+                `;
+            }
             return;
         }
 

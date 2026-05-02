@@ -208,6 +208,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        if (visiblePosts.length === 0) {
+            postsTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="padding: 28px; text-align: center; color: var(--dark-grey);">
+                        No ${isAnnouncementTab() ? 'announcements' : isBlogTab() ? 'blog posts' : 'entries'} available yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
         postsTableBody.innerHTML = visiblePosts.map((post) => {
             const rowType = post.isAnnouncement ? 'Announcement' : 'Blog';
             const rowTypeClass = post.isAnnouncement ? 'gold' : '';

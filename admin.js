@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    const authConfig = await auth.getConfig().catch(() => null);
+    const authUser = await auth.getUser(session).catch(() => session.user || null);
+
     const serverContent = window.VENANCIA_CONTENT || {};
     let posts = Array.isArray(serverContent.posts) ? serverContent.posts : [];
     let activeTab = 'overview';
@@ -73,6 +76,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const isAnnouncementTab = () => activeTab === 'announcements';
     const isSettingsTab = () => activeTab === 'settings';
 
+    const getSettingsRows = () => {
+        const backendBase = window.VenanciaApiBaseUrl || window.location.origin;
+        return [
+            {
+                name: 'Signed-in admin',
+                value: authUser?.email || session?.user?.email || 'Unknown',
+                status: 'Active',
+                notes: 'Current authenticated Supabase user'
+            },
+            {
+                name: 'Authentication',
+                value: authConfig?.authEnabled ? 'Supabase Auth' : 'Legacy fallback',
+                status: authConfig?.authEnabled ? 'Active' : 'Limited',
+                notes: authConfig?.authEnabled ? 'Email/password login enabled' : 'Development fallback only'
+            },
+            {
+                name: 'Content backend',
+                value: backendBase,
+                status: 'Connected',
+                notes: 'API requests are routed here from the website'
+            },
+            {
+                name: 'Posts table',
+                value: 'public.posts',
+                status: 'Required',
+                notes: 'This table must exist in Supabase for content to load'
+            }
+        ];
+    };
+
     const getVisiblePosts = () => {
         if (activeTab === 'announcements') {
             return sortPosts(posts.filter((post) => post.isAnnouncement));
@@ -105,10 +138,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (isSettingsTab()) {
             tabTitle.innerText = 'Settings';
-            tabSubtitle.innerText = 'Content settings are managed through the database';
-            tableTitle.innerText = 'Settings';
-            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
-            addPostBtn.disabled = true;
+            tabSubtitle.innerText = 'Review admin access, backend routing, and content storage';
+            tableTitle.innerText = 'Admin Settings';
+            addPostBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Status';
+            addPostBtn.disabled = false;
             tableHead.innerHTML = `
                 <th>Setting</th>
                 <th>Value</th>
@@ -138,13 +171,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const visiblePosts = getVisiblePosts();
         if (isSettingsTab()) {
-            postsTableBody.innerHTML = `
+            postsTableBody.innerHTML = getSettingsRows().map((row) => `
                 <tr>
-                    <td colspan="5" style="padding: 32px; text-align: center; color: var(--dark-grey);">
-                        Settings are managed directly through the database and API.
+                    <td class="post-title-cell">${escapeHtml(row.name)}</td>
+                    <td>${escapeHtml(row.value)}</td>
+                    <td><span class="status-badge active">${escapeHtml(row.status)}</span></td>
+                    <td>${escapeHtml(row.notes)}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-icon" type="button" title="Copy value" data-copy="${escapeHtml(row.value)}">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
-            `;
+            `).join('');
+
+            document.querySelectorAll('[data-copy]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const value = btn.getAttribute('data-copy') || '';
+                    try {
+                        await navigator.clipboard.writeText(value);
+                        btn.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-copy"></i>';
+                        }, 1200);
+                    } catch (error) {
+                        alert('Unable to copy this value.');
+                    }
+                });
+            });
             return;
         }
 
@@ -311,6 +367,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     addPostBtn.addEventListener('click', () => {
+        if (isSettingsTab()) {
+            window.location.reload();
+            return;
+        }
+
         if (addPostBtn.disabled) {
             return;
         }

@@ -383,8 +383,7 @@ const initVenanciaSite = () => {
     }
 
     // 12. Database-backed blog and announcement rendering
-    const contentPayload = window.VENANCIA_CONTENT || {};
-    const allPosts = Array.isArray(contentPayload.posts) ? contentPayload.posts : [];
+    let allPosts = Array.isArray(window.VENANCIA_CONTENT?.posts) ? window.VENANCIA_CONTENT.posts : [];
 
     const sortPosts = (posts) => [...posts].sort((a, b) => {
         const sortDelta = (a.sortOrder || 0) - (b.sortOrder || 0);
@@ -431,6 +430,10 @@ const initVenanciaSite = () => {
     const getVisiblePosts = () => sortPosts(allPosts.filter((post) => !post.isAnnouncement));
     const getAnnouncements = () => sortPosts(allPosts.filter((post) => post.isAnnouncement));
 
+    const syncContentState = () => {
+        allPosts = Array.isArray(window.VENANCIA_CONTENT?.posts) ? window.VENANCIA_CONTENT.posts : [];
+    };
+
     const renderAnnouncementCards = (grid) => {
         if (!grid) return;
 
@@ -438,7 +441,7 @@ const initVenanciaSite = () => {
         if (announcements.length === 0) {
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; padding: 28px; border: 1px dashed rgba(255,255,255,0.25); border-radius: 18px; color: rgba(255,255,255,0.75); text-align: center;">
-                    No announcements available yet. New announcements will appear here once they are added in the admin dashboard.
+                    No announcement available yet.
                 </div>
             `;
             return;
@@ -465,7 +468,7 @@ const initVenanciaSite = () => {
         if (posts.length === 0) {
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; padding: 32px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 18px; color: var(--dark-grey); text-align: center; background: rgba(255,255,255,0.8);">
-                    No blog posts available yet. Once a new post is published in the admin dashboard, it will appear here automatically.
+                    No blog posts available yet.
                 </div>
             `;
             return;
@@ -596,13 +599,22 @@ const initVenanciaSite = () => {
         renderBlogCards(blogGrid);
     };
 
-    if (window.location.pathname.includes('article.html') || window.location.href.includes('article.html')) {
-        renderArticlePage();
-    }
+    const renderContentPages = () => {
+        if (window.location.pathname.includes('article.html') || window.location.href.includes('article.html')) {
+            renderArticlePage();
+        }
 
-    if (window.location.pathname.includes('blog.html') || window.location.href.includes('blog.html')) {
-        renderBlogPage();
-    }
+        if (window.location.pathname.includes('blog.html') || window.location.href.includes('blog.html')) {
+            renderBlogPage();
+        }
+    };
+
+    renderContentPages();
+
+    window.addEventListener('venancia:content-updated', () => {
+        syncContentState();
+        renderContentPages();
+    });
 
     // 13. Blog Page Subscribe Form Handling
     const subscribeFormBlog = document.getElementById('subscribe-form-blog');

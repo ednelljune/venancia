@@ -18,8 +18,7 @@ const initVenanciaAdmin = async () => {
     const authConfig = await auth.getConfig().catch(() => null);
     const authUser = await auth.getUser(session).catch(() => session.user || null);
 
-    const serverContent = window.VENANCIA_CONTENT || {};
-    let posts = Array.isArray(serverContent.posts) ? serverContent.posts : [];
+    let posts = Array.isArray(window.VENANCIA_CONTENT?.posts) ? window.VENANCIA_CONTENT.posts : [];
     let activeTab = window.VENANCIA_ACTIVE_PAGE || 'overview';
 
     const overviewTableBody = document.getElementById('overview-table-body');
@@ -125,6 +124,10 @@ const initVenanciaAdmin = async () => {
         }
 
         return sortPosts(posts);
+    };
+
+    const syncContentState = () => {
+        posts = Array.isArray(window.VENANCIA_CONTENT?.posts) ? window.VENANCIA_CONTENT.posts : [];
     };
 
     const updateStats = () => {
@@ -442,6 +445,11 @@ const initVenanciaAdmin = async () => {
 
     updateStats();
     renderPostsTable();
+
+    window.addEventListener('venancia:content-updated', () => {
+        syncContentState();
+        renderPostsTable();
+    });
 };
 
 if (document.readyState === 'loading') {

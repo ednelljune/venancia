@@ -14,6 +14,10 @@ const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '') || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 const useSupabase = Boolean(supabaseUrl && supabaseServiceKey);
+const contentCacheTtlMs = Number(process.env.CONTENT_CACHE_TTL_MS || 30000);
+
+let cachedContentPayload = null;
+let cachedContentAt = 0;
 
 const mimeTypes = {
     '.html': 'text/html; charset=utf-8',
@@ -61,6 +65,11 @@ function corsHeaders(origin) {
 
 function supabasePath(pathname) {
     return `${supabaseUrl}/rest/v1${pathname}`;
+}
+
+function invalidateContentCache() {
+    cachedContentPayload = null;
+    cachedContentAt = 0;
 }
 
 async function supabaseRequest(pathname, options = {}) {
@@ -372,12 +381,18 @@ function serveStatic(req, res, pathname) {
     const contentType = mimeTypes[ext] || 'application/octet-stream';
     let data = readFileSync(filePath);
 
-    if ((relativePath === '/admin-login.html' || relativePath === '/admin-dashboard.html') && contentType.includes('text/html')) {
-        const injectedConfig = `<script>window.VENANCIA_RUNTIME_CONFIG=${JSON.stringify({
-            supabaseUrl,
-            supabaseAnonKey,
-            authEnabled: Boolean(supabaseUrl && supabaseAnonKey)
-        })};</script>`;
+    if (contentType.includes('text/html')) {
+        const runtimeConfig = {
+            apiBaseUrl: publicApiBaseUrl || ''
+        };
+
+        if (relativePath === '/admin-login.html' || relativePath === '/admin-dashboard.html') {
+            runtimeConfig.supabaseUrl = supabaseUrl;
+            runtimeConfig.supabaseAnonKey = supabaseAnonKey;
+            runtimeConfig.authEnabled = Boolean(supabaseUrl && supabaseAnonKey);
+        }
+
+        const injectedConfig = `<script>window.VENANCIA_RUNTIME_CONFIG=${JSON.stringify(runtimeConfig)};</script>`;
         data = Buffer.from(String(data).replace('<head>', `<head>${injectedConfig}`));
     }
 
@@ -418,14 +433,20 @@ function parseBody(req) {
 }
 
 async function getContentPayload() {
+    if (cachedContentPayload && (Date.now() - cachedContentAt) < contentCacheTtlMs) {
+        return cachedContentPayload;
+    }
+
     await store.ensureSeeded();
     const posts = await store.listPosts();
 
-    return {
+    cachedContentPayload = {
         posts,
         blogs: posts.filter((post) => !post.isAnnouncement),
         announcements: posts.filter((post) => post.isAnnouncement)
     };
+    cachedContentAt = Date.now();
+    return cachedContentPayload;
 }
 
 const server = createServer(async (req, res) => {
@@ -530,6 +551,7 @@ const server = createServer(async (req, res) => {
                     return;
                 }
 
+                invalidateContentCache();
                 res.writeHead(200, {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Cache-Control': 'no-store',
@@ -543,6 +565,7 @@ const server = createServer(async (req, res) => {
                 await store.ensureSeeded();
                 const body = await parseBody(req);
                 const post = await store.upsertPost({ ...body, id }, id);
+                invalidateContentCache();
                 res.writeHead(200, {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Cache-Control': 'no-store',
@@ -557,6 +580,7 @@ const server = createServer(async (req, res) => {
             await store.ensureSeeded();
             const body = await parseBody(req);
             const post = await store.upsertPost(body);
+            invalidateContentCache();
             res.writeHead(201, {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Cache-Control': 'no-store',

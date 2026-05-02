@@ -355,12 +355,10 @@
     <script>
         (function () {
             window.VENANCIA_ACTIVE_PAGE = 'announcements';
-            let loaded = false;
+            const CACHE_KEY = 'venancia_content_cache';
+            const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+
             const boot = () => {
-                if (loaded) {
-                    return;
-                }
-                loaded = true;
                 const authScript = document.createElement('script');
                 authScript.src = '/supabase-auth.js';
                 authScript.onload = () => {
@@ -371,16 +369,31 @@
                 document.body.appendChild(authScript);
             };
 
-            const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+            try {
+                const cached = sessionStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    window.VENANCIA_CONTENT = JSON.parse(cached);
+                }
+            } catch (error) {
+                sessionStorage.removeItem(CACHE_KEY);
+            }
+
+            boot();
+
             fetch(`${apiBaseUrl}/api/content`, { cache: 'no-store' })
                 .then((response) => response.ok ? response.json() : Promise.reject(response))
                 .then((payload) => {
                     window.VENANCIA_CONTENT = payload;
+                    try {
+                        sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+                    } catch (error) {
+                        sessionStorage.removeItem(CACHE_KEY);
+                    }
+                    window.dispatchEvent(new CustomEvent('venancia:content-updated', { detail: payload }));
                 })
                 .catch(() => {
                     window.VENANCIA_CONTENT = window.VENANCIA_CONTENT || {};
-                })
-                .finally(boot);
+                });
         })();
     </script>
 </body>

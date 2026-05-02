@@ -86,39 +86,13 @@
 
     <main>
         <!-- Featured Announcements -->
-        <section class="announcements"
-            style="background: linear-gradient(135deg, var(--dark), #1a1a1a); padding: 100px 0 80px; color: white;">
+        <section class="announcements" style="background: linear-gradient(135deg, var(--dark), #1a1a1a); padding: 100px 0 80px; color: white;">
             <div class="container">
                 <div class="section-header" style="text-align: center; margin-bottom: 60px;" data-reveal="fade-up">
-                    <h2 class="section-title" style="color: white;">Featured <span
-                            class="highlight">Announcements</span></h2>
-                    <p style="color: rgba(255,255,255,0.7);">Stay ahead with the latest announcements.</p>
+                    <h2 class="section-title" style="color: white;">Featured <span class="highlight">Announcements</span></h2>
+                    <p style="color: rgba(255,255,255,0.7);">Stay ahead with the latest high-priority updates.</p>
                 </div>
-
-
-                <!-- Subscription Section -->
-                <div class="container">
-                    <div class="subscribe-box small" data-reveal="fade-up">
-                        <div class="subscribe-content">
-                            <h3>Stay Updated with Work & Study Opportunities in Europe</h3>
-                            <p>Be the first to know about new openings, pathway changes, and visa updates.</p>
-                        </div>
-                        <div class="subscribe-form-container">
-                            <form id="subscribe-form-blog" class="subscribe-form"
-                                action="https://formsubmit.co/info@venancia.com.au" method="POST"
-                                target="formsubmit-subscribe-target-blog">
-                                <input type="hidden" name="_subject" value="New Newsletter Subscription">
-                                <input type="hidden" name="_captcha" value="false">
-                                <input type="hidden" name="_template" value="table">
-                                <input type="email" id="subscribe-email-blog" name="email"
-                                    placeholder="Your email address" required>
-                                <button type="submit" class="btn btn-primary">Subscribe</button>
-                            </form>
-                            <iframe id="formsubmit-subscribe-target-blog" name="formsubmit-subscribe-target-blog"
-                                class="hidden" title="Subscribe form target"></iframe>
-                        </div>
-                    </div>
-                </div>
+                <div id="announcements-grid" class="announcements-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;"></div>
             </div>
         </section>
 
@@ -129,71 +103,28 @@
                     <h2 class="section-title">All <span class="highlight">Insights & Opportunities</span></h2>
                     <p>Explore our full range of guides and updates for your journey to Europe.</p>
                 </div>
-                <div class="insights-grid">
-                    <!-- Card 1 -->
-                    <a href="article.html?post=top-countries" class="blog-card" data-reveal="fade-up">
-                        <div class="blog-content">
-                            <div
-                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                                <span class="category-tag">Work</span>
-                                <div
-                                    style="display: flex; align-items: center; gap: 10px; color: var(--dark-grey); opacity: 0.6; font-size: 0.8rem;">
-                                    <span><i class="far fa-clock"></i> 5 min read</span>
-                                </div>
-                            </div>
-                            <h3>Top 5 Countries in Europe Hiring Skilled Workers in 2026</h3>
-                            <p>Discover which European nations are actively seeking international talent across various
-                                industries...</p>
-                        </div>
-                    </a>
-                    <!-- Card 2 -->
-                    <a href="article.html?post=poland-work" class="blog-card" data-reveal="fade-up">
-                        <div class="blog-content">
-                            <div
-                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                                <span class="category-tag">Work</span>
-                                <div
-                                    style="display: flex; align-items: center; gap: 10px; color: var(--dark-grey); opacity: 0.6; font-size: 0.8rem;">
-                                    <span><i class="far fa-clock"></i> 8 min read</span>
-                                </div>
-                            </div>
-                            <h3>How to Apply for Work in Poland – Step-by-Step Guide</h3>
-                            <p>A comprehensive guide on securing employment in Poland, from visa requirements to finding
-                                the right role...</p>
-                        </div>
-                    </a>
-                    <!-- Card 3 -->
-                    <a href="article.html?post=spain-student" class="blog-card" data-reveal="fade-up">
-                        <div class="blog-content">
-                            <div
-                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                                <span class="category-tag gold">Student</span>
-                                <div
-                                    style="display: flex; align-items: center; gap: 10px; color: var(--dark-grey); opacity: 0.6; font-size: 0.8rem;">
-                                    <span><i class="far fa-clock"></i> 6 min read</span>
-                                </div>
-                            </div>
-                            <h3>Student Visa for Spain: Requirements and Process</h3>
-                            <p>Everything you need to know about applying for a student visa to study at top
-                                universities in Spain...</p>
-                        </div>
-                    </a>
-                    <!-- Card 4 -->
-                    <a href="article.html?post=visa-mistakes" class="blog-card" data-reveal="fade-up">
-                        <div class="blog-content">
-                            <div
-                                style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-                                <span class="category-tag dark">Visa Updates</span>
-                                <div
-                                    style="display: flex; align-items: center; gap: 10px; color: var(--dark-grey); opacity: 0.6; font-size: 0.8rem;">
-                                    <span><i class="far fa-clock"></i> 4 min read</span>
-                                </div>
-                            </div>
-                            <h3>Common Mistakes in Visa Applications and How to Avoid Them</h3>
-                            <p>Ensure your application is successful by avoiding these frequent errors that lead to visa
-                                rejections...</p>
-                        </div>
-                    </a>
+                <div class="insights-grid" id="blog-grid"></div>
+            </div>
+        </section>
+
+        <!-- Subscription Section -->
+        <section class="insights" style="padding: 100px 0; background-color: var(--light-grey);">
+            <div class="container">
+                <div class="subscribe-box small" data-reveal="fade-up">
+                    <div class="subscribe-content">
+                        <h3>Stay Updated with Work & Study Opportunities in Europe</h3>
+                        <p>Be the first to know about new openings, pathway changes, and visa updates.</p>
+                    </div>
+                    <div class="subscribe-form-container">
+                        <form id="subscribe-form-blog" class="subscribe-form" action="https://formsubmit.co/info@venancia.com.au" method="POST" target="formsubmit-subscribe-target-blog">
+                            <input type="hidden" name="_subject" value="New Newsletter Subscription">
+                            <input type="hidden" name="_captcha" value="false">
+                            <input type="hidden" name="_template" value="table">
+                            <input type="email" id="subscribe-email-blog" name="email" placeholder="Your email address" required>
+                            <button type="submit" class="btn btn-primary">Subscribe</button>
+                        </form>
+                        <iframe id="formsubmit-subscribe-target-blog" name="formsubmit-subscribe-target-blog" class="hidden" title="Subscribe form target"></iframe>
+                    </div>
                 </div>
             </div>
         </section>
@@ -208,11 +139,9 @@
                         <img src="assets/logo.png" alt="Venancia Consultancy Pty Ltd Logo">
                         <span>Venancia Consultancy Pty Ltd</span>
                     </a>
-                    <p>Australia-based pathway consultancy helping you build a successful future in Europe. Expert
-                        guidance, personalized support.</p>
+                    <p>Australia-based pathway consultancy helping you build a successful future in Europe. Expert guidance, personalized support.</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/venanciaconsultancy/" target="_blank"
-                            rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.facebook.com/venanciaconsultancy/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
                     </div>
@@ -235,12 +164,12 @@
                         <li><a href="index.html#countries">Spain</a></li>
                         <li><a href="index.html#countries">Germany</a></li>
                         <li><a href="index.html#countries">Netherlands</a></li>
+                        <li><a href="index.html#countries">Nepal</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Venancia Consultancy Pty Ltd. ABN 88 662 559 560. All rights reserved. | <a
-                        href="#">Privacy Policy</a></p>
+                <p>&copy; 2026 Venancia Consultancy Pty Ltd. ABN 88 662 559 560. All rights reserved. | <a href="#">Privacy Policy</a></p>
             </div>
         </div>
     </footer>
@@ -248,9 +177,7 @@
     <!-- Floating Action Group (WhatsApp + Translation) -->
     <div class="whatsapp-wrapper">
         <div class="floating-lang-options">
-            <p
-                style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; color: var(--dark-grey); text-align: center; text-transform: uppercase; letter-spacing: 1px;">
-                Select Language</p>
+            <p style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; color: var(--dark-grey); text-align: center; text-transform: uppercase; letter-spacing: 1px;">Select Language</p>
             <div class="floating-lang-grid notranslate">
                 <a href="#" data-lang="en">English</a>
                 <a href="#" data-lang="tl">Tagalog</a>
@@ -281,6 +208,7 @@
         }
     </script>
     <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="/api/content.js"></script>
     <script src="script.js"></script>
 </body>
 

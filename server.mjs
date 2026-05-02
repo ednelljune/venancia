@@ -205,7 +205,7 @@ function localSeedStore() {
 function supabaseStore() {
     return {
         async ensureSeeded() {
-            const response = await supabaseRequest('/posts?select=id&limit=1', {
+            const response = await supabaseRequest('/posts?select=id', {
                 method: 'GET'
             });
 
@@ -215,23 +215,26 @@ function supabaseStore() {
             }
 
             const existing = await response.json();
-            if (Array.isArray(existing) && existing.length > 0) {
+            const existingIds = new Set(Array.isArray(existing) ? existing.map((row) => row.id) : []);
+            const missingRows = cloneSeedPosts()
+                .filter((post) => !existingIds.has(post.id))
+                .map((post) => ({
+                    id: post.id,
+                    title: post.title,
+                    category: post.category,
+                    tag_class: post.tagClass || '',
+                    icon: post.icon || '',
+                    icon_class: post.iconClass || '',
+                    date: post.date,
+                    read_time: post.readTime,
+                    content: post.content.trim(),
+                    is_announcement: Boolean(post.isAnnouncement),
+                    sort_order: post.sortOrder || 0
+                }));
+
+            if (missingRows.length === 0) {
                 return;
             }
-
-            const seedRows = cloneSeedPosts().map((post) => ({
-                id: post.id,
-                title: post.title,
-                category: post.category,
-                tag_class: post.tagClass || '',
-                icon: post.icon || '',
-                icon_class: post.iconClass || '',
-                date: post.date,
-                read_time: post.readTime,
-                content: post.content.trim(),
-                is_announcement: Boolean(post.isAnnouncement),
-                sort_order: post.sortOrder || 0
-            }));
 
             const insertResponse = await supabaseRequest('/posts', {
                 method: 'POST',
@@ -239,7 +242,7 @@ function supabaseStore() {
                     'Content-Type': 'application/json',
                     Prefer: 'return=minimal'
                 },
-                body: JSON.stringify(seedRows)
+                body: JSON.stringify(missingRows)
             });
 
             if (!insertResponse.ok) {

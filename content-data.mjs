@@ -1,5 +1,73 @@
 export const seedPosts = [
     {
+        id: 'philippines-skilled-migration-europe',
+        title: 'Philippines Skilled Migration to Europe: What Applicants Should Know',
+        category: 'New Policy',
+        tagClass: '',
+        icon: 'fa-bolt',
+        iconClass: '',
+        date: 'May 2, 2026',
+        readTime: '2 min read',
+        isAnnouncement: true,
+        sortOrder: 0,
+        content: `
+            <p>Europe continues to be an important destination for Filipino workers. According to the Philippine Statistics Authority, Europe accounted for 10.6% of all Overseas Filipino Workers in 2024, showing that the region remains a real pathway for qualified applicants.</p>
+            <h3 style="margin: 30px 0 15px;">What this means for skilled applicants</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Healthcare, hospitality, construction, logistics, and technical roles continue to appear in European shortage lists.</li>
+                <li style="margin-bottom: 10px;">Many countries use work permits, single permits, or EU Blue Card routes depending on the role and salary level.</li>
+                <li style="margin-bottom: 10px;">Applicants should prepare contracts, qualification proofs, translations, and identity documents early.</li>
+            </ul>
+            <h3 style="margin: 30px 0 15px;">Our recommendation</h3>
+            <p>Filipino applicants should always apply through the official authorities of the destination country and check the exact occupation and salary rules before spending money on processing. Europe is open, but every pathway is country-specific.</p>
+        `
+    },
+    {
+        id: 'europe-skilled-worker-step-by-step',
+        title: 'Europe Skilled Worker Visa: A Step-by-Step Guide',
+        category: 'Visa Updates',
+        tagClass: 'dark',
+        icon: 'fa-passport',
+        iconClass: 'dark',
+        date: 'May 2, 2026',
+        readTime: '7 min read',
+        isAnnouncement: false,
+        sortOrder: 8,
+        content: `
+            <p>If you want to work in Europe as a skilled worker, the process is usually simpler when you treat it as a sequence rather than a single visa application. The exact rules change by country, but the same core steps appear again and again: secure a job offer, confirm the correct permit route, prepare your documents, apply to the destination country, and complete registration after arrival.</p>
+            <h3 style="margin: 30px 0 15px;">Step 1: Choose the right pathway</h3>
+            <p>Europe does not use one single work visa for everyone. For highly qualified professionals, the EU Blue Card is one option. For many other workers, the Single Permit system is used. In both cases, national rules still matter, so the destination country is always the final authority.</p>
+            <h3 style="margin: 30px 0 15px;">Step 2: Secure a real job offer</h3>
+            <p>Most skilled worker routes begin with a genuine employment offer or a binding contract. The Council notes that EU Blue Card applicants need a valid work contract or binding offer for at least six months, and the salary must meet the threshold set by the member state.</p>
+            <h3 style="margin: 30px 0 15px;">Step 3: Check qualifications and salary rules</h3>
+            <p>For regulated professions, such as healthcare or engineering, you may need formal recognition or licensing. For other roles, your degree, professional background, or technical skills must match the job. This is especially important because each country sets its own salary threshold and document checklist.</p>
+            <h3 style="margin: 30px 0 15px;">Step 4: Prepare your documents</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Passport with enough validity</li>
+                <li style="margin-bottom: 10px;">Signed employment contract or binding offer</li>
+                <li style="margin-bottom: 10px;">Qualifications, transcripts, and CV</li>
+                <li style="margin-bottom: 10px;">Police clearance or background checks where required</li>
+                <li style="margin-bottom: 10px;">Health insurance, accommodation details, and translations if needed</li>
+            </ul>
+            <h3 style="margin: 30px 0 15px;">Step 5: Apply to the correct authority</h3>
+            <p>The EU does not issue a one-size-fits-all visa. You must apply to the authorities of the country you plan to move to. Depending on the pathway, you may apply from outside the EU or, in some cases, from within the EU if you already hold a valid residence permit.</p>
+            <h3 style="margin: 30px 0 15px;">Step 6: Wait for the decision</h3>
+            <p>Processing times vary by country and permit type. For the EU Blue Card, applicants are notified of the decision within 90 days. The recast Single Permit rules also aim for a decision within 90 days in many cases. National procedures can still be faster or slower depending on the embassy and the labour market situation.</p>
+            <h3 style="margin: 30px 0 15px;">Step 7: Travel, register, and settle in</h3>
+            <p>Once approved, travel to the destination country and complete the local steps immediately after arrival. This usually includes address registration, residence card collection, tax registration, and sometimes social security enrolment. Missing this stage can create problems later when you extend or change your permit.</p>
+            <h3 style="margin: 30px 0 15px;">Common mistakes to avoid</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Applying for the wrong permit category</li>
+                <li style="margin-bottom: 10px;">Using a job offer that does not meet the salary threshold</li>
+                <li style="margin-bottom: 10px;">Submitting incomplete translations or uncertified documents</li>
+                <li style="margin-bottom: 10px;">Assuming one country’s rules apply across all of Europe</li>
+            </ul>
+            <h3 style="margin: 30px 0 15px;">Bottom line</h3>
+            <p>The best Europe skilled worker application is the one built around the right permit, the right employer, and the right country-specific documents. If you plan carefully and follow the official process, the pathway is much clearer than most applicants expect.</p>
+            <p><strong>Official references:</strong> European Commission work and single permit guidance, the EU Blue Card rules, and the Philippine Statistics Authority overseas worker releases.</p>
+        `
+    },
+    {
         id: 'norway-intake-2026',
         title: '2026 Norway Skilled Worker Intake: Official Quotas Released',
         category: 'Urgent',

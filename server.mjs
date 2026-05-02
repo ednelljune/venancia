@@ -400,6 +400,14 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     try {
+        if (url.pathname === '/healthz' && req.method === 'GET') {
+            sendJson(res, 200, {
+                ok: true,
+                supabaseConfigured: Boolean(supabaseUrl && supabaseAnonKey && supabaseServiceKey)
+            });
+            return;
+        }
+
         if (url.pathname === '/api/config' && req.method === 'GET') {
             sendJson(res, 200, {
                 supabaseUrl,

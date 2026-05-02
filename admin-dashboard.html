@@ -334,14 +334,17 @@
             <span>Venancia Admin</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="admin-dashboard.html" class="nav-item active">
+            <a href="#" class="nav-item active" data-tab="overview">
                 <i class="fas fa-th-large"></i> <span>Overview</span>
             </a>
-            <a href="manage-blog.html" class="nav-item">
+            <a href="#" class="nav-item" data-tab="blog">
                 <i class="fas fa-newspaper"></i> <span>Manage Blog</span>
             </a>
-            <a href="manage-announcement.html" class="nav-item">
+            <a href="#" class="nav-item" data-tab="announcements">
                 <i class="fas fa-bullhorn"></i> <span>Manage Announcements</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="settings">
+                <i class="fas fa-cog"></i> <span>Settings</span>
             </a>
         </nav>
         <div class="sidebar-footer">
@@ -397,7 +400,7 @@
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
-                            <tr>
+                            <tr id="table-head">
                                 <th>Title</th>
                                 <th>Type</th>
                                 <th>Date</th>
@@ -481,9 +484,13 @@
     <script src="/api-base.js"></script>
     <script>
         (function () {
-            const contentScript = document.createElement('script');
-            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
-            contentScript.onload = () => {
+            let loaded = false;
+            const loadDashboardScripts = () => {
+                if (loaded) {
+                    return;
+                }
+                loaded = true;
+
                 const authScript = document.createElement('script');
                 authScript.src = '/supabase-auth.js';
                 authScript.onload = () => {
@@ -493,7 +500,13 @@
                 };
                 document.body.appendChild(authScript);
             };
+
+            const contentScript = document.createElement('script');
+            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
+            contentScript.onload = loadDashboardScripts;
+            contentScript.onerror = loadDashboardScripts;
             document.head.appendChild(contentScript);
+            setTimeout(loadDashboardScripts, 1500);
         })();
     </script>
 </body>

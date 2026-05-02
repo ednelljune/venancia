@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let posts = Array.isArray(serverContent.posts) ? serverContent.posts : [];
     let activeTab = window.VENANCIA_ACTIVE_PAGE || 'overview';
 
-    const postsTableBody = document.getElementById('posts-table-body');
+    const postsTableBody = document.getElementById('overview-table-body');
     const postModal = document.getElementById('post-modal');
     const exportModal = document.getElementById('export-modal');
     const postForm = document.getElementById('post-form');
@@ -74,13 +74,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const isAnnouncementTab = () => activeTab === 'announcements';
+    const isBlogTab = () => activeTab === 'blog';
+    const isSettingsTab = () => activeTab === 'settings';
+
+    const getSettingsRows = () => {
+        const backendBase = window.VenanciaApiBaseUrl || window.location.origin;
+        return [
+            {
+                name: 'Signed-in admin',
+                value: authUser?.email || session?.user?.email || 'Unknown',
+                status: 'Active',
+                notes: 'Current authenticated Supabase user'
+            },
+            {
+                name: 'Authentication',
+                value: authConfig?.authEnabled ? 'Supabase Auth' : 'Legacy fallback',
+                status: authConfig?.authEnabled ? 'Active' : 'Limited',
+                notes: authConfig?.authEnabled ? 'Email/password login enabled' : 'Development fallback only'
+            },
+            {
+                name: 'Content backend',
+                value: backendBase,
+                status: 'Connected',
+                notes: 'API requests are routed here from the website'
+            },
+            {
+                name: 'Posts table',
+                value: 'public.posts',
+                status: 'Required',
+                notes: 'This table must exist in Supabase for content to load'
+            }
+        ];
+    };
 
     const getVisiblePosts = () => {
-        if (activeTab === 'announcements') {
+        if (isAnnouncementTab()) {
             return sortPosts(posts.filter((post) => post.isAnnouncement));
         }
 
-        return sortPosts(posts.filter((post) => !post.isAnnouncement));
+        if (isBlogTab()) {
+            return sortPosts(posts.filter((post) => !post.isAnnouncement));
+        }
+
+        return sortPosts(posts);
     };
 
     const updateStats = () => {
@@ -89,83 +125,112 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const syncTabUI = () => {
-        // Toggle tab visibility
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.style.display = 'none';
-        });
-        const activeTabContent = document.getElementById(`${activeTab}-tab`);
-        if (activeTabContent) activeTabContent.style.display = 'block';
-
         if (isAnnouncementTab()) {
             tabTitle.innerText = 'Announcement Manager';
             tabSubtitle.innerText = 'Create and maintain featured announcements';
+            tableTitle.innerText = 'Featured Announcements';
+            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Announcement';
+            addPostBtn.disabled = false;
+            tableHead.innerHTML = `
+                <th>Post Title</th>
+                <th>Type</th>
+                <th>Date Published</th>
+                <th>Read Time</th>
+                <th>Actions</th>
+            `;
             return;
         }
 
-        tabTitle.innerText = activeTab === 'blog' ? 'Blog Manager' : 'Dashboard Overview';
+        if (isBlogTab()) {
+            tabTitle.innerText = 'Blog Manager';
+            tabSubtitle.innerText = 'Create and maintain blog posts';
+            tableTitle.innerText = 'Blog Posts';
+            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
+            addPostBtn.disabled = false;
+            tableHead.innerHTML = `
+                <th>Post Title</th>
+                <th>Type</th>
+                <th>Date Published</th>
+                <th>Read Time</th>
+                <th>Actions</th>
+            `;
+            return;
+        }
+
+        tabTitle.innerText = 'Dashboard Overview';
         tabSubtitle.innerText = 'Welcome back, Admin';
+        tableTitle.innerText = 'Recent Activity';
+        addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Entry';
+        addPostBtn.disabled = false;
+        tableHead.innerHTML = `
+            <th>Title</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Actions</th>
+        `;
     };
 
     const renderPostsTable = () => {
         syncTabUI();
 
         const visiblePosts = getVisiblePosts();
-        
-        // Populate Overview
-        if (activeTab === 'overview') {
-            const overviewBody = document.getElementById('overview-table-body');
-            const allPosts = sortPosts(posts);
-            overviewBody.innerHTML = allPosts.slice(0, 10).map(post => `
+        if (isSettingsTab()) {
+            postsTableBody.innerHTML = getSettingsRows().map((row) => `
                 <tr>
-                    <td class="post-title-cell">${escapeHtml(post.title)}</td>
-                    <td><span class="category-tag ${post.isAnnouncement ? 'gold' : ''}">${post.isAnnouncement ? 'Announcement' : 'Blog'}</span></td>
-                    <td>${escapeHtml(post.date)}</td>
+                    <td class="post-title-cell">${escapeHtml(row.name)}</td>
+                    <td>${escapeHtml(row.value)}</td>
+                    <td><span class="status-badge active">${escapeHtml(row.status)}</span></td>
+                    <td>${escapeHtml(row.notes)}</td>
                     <td>
                         <div class="action-btns">
-                            <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" type="button" title="Copy value" data-copy="${escapeHtml(row.value)}">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
             `).join('');
+
+            document.querySelectorAll('[data-copy]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const value = btn.getAttribute('data-copy') || '';
+                    try {
+                        await navigator.clipboard.writeText(value);
+                        btn.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => {
+                            btn.innerHTML = '<i class="fas fa-copy"></i>';
+                        }, 1200);
+                    } catch (error) {
+                        alert('Unable to copy this value.');
+                    }
+                });
+            });
+            return;
         }
 
-        // Populate Blog
-        if (activeTab === 'blog') {
-            const blogBody = document.getElementById('blog-table-body');
-            blogBody.innerHTML = visiblePosts.map(post => `
-                <tr>
-                    <td class="post-title-cell">${escapeHtml(post.title)}</td>
-                    <td><span class="category-tag ${categoryTagClass(post.category)}">${escapeHtml(post.category)}</span></td>
-                    <td>${escapeHtml(post.date)}</td>
-                    <td>${escapeHtml(post.readTime)}</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
-                            <button class="btn-icon delete delete-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-        }
+        postsTableBody.innerHTML = visiblePosts.map((post) => {
+            const rowType = post.isAnnouncement ? 'Announcement' : 'Blog';
+            const rowTypeClass = post.isAnnouncement ? 'gold' : '';
+            const readTime = post.readTime || '';
+            const actionButtons = `
+                <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
+                <button class="btn-icon delete delete-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-trash-alt"></i></button>
+            `;
 
-        // Populate Announcements
-        if (activeTab === 'announcements') {
-            const announceBody = document.getElementById('announcements-table-body');
-            announceBody.innerHTML = visiblePosts.map(post => `
+            return `
                 <tr>
                     <td class="post-title-cell">${escapeHtml(post.title)}</td>
-                    <td><span class="category-tag gold">${escapeHtml(post.category)}</span></td>
+                    <td><span class="category-tag ${rowTypeClass}">${escapeHtml(rowType)}</span></td>
                     <td>${escapeHtml(post.date)}</td>
-                    <td><span class="status-badge active">Live</span></td>
+                    <td>${escapeHtml(readTime)}</td>
                     <td>
                         <div class="action-btns">
-                            <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
-                            <button class="btn-icon delete delete-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-trash-alt"></i></button>
+                            ${actionButtons}
                         </div>
                     </td>
                 </tr>
-            `).join('');
-        }
+            `;
+        }).join('');
 
         // Re-attach event listeners for edit/delete buttons in any tab
         document.querySelectorAll('.edit-post').forEach((btn) => {
@@ -276,12 +341,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         postModal.style.display = 'none';
     };
 
-    // Navigation is handled by separate HTML pages now
+    tabLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tab = link.getAttribute('data-tab');
+            activeTab = tab || 'overview';
+
+            tabLinks.forEach((item) => item.classList.remove('active'));
+            link.classList.add('active');
+            renderPostsTable();
+        });
+    });
 
     document.querySelectorAll('.add-post-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (isSettingsTab()) {
-                window.location.reload();
+                renderPostsTable();
                 return;
             }
             openCreateModal();

@@ -216,14 +216,23 @@
     <script src="/api-base.js"></script>
     <script>
         (function () {
-            const contentScript = document.createElement('script');
-            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
-            contentScript.onload = () => {
+            let loaded = false;
+            const loadAppScript = () => {
+                if (loaded) {
+                    return;
+                }
+                loaded = true;
                 const appScript = document.createElement('script');
                 appScript.src = 'script.js';
                 document.body.appendChild(appScript);
             };
+
+            const contentScript = document.createElement('script');
+            contentScript.src = `${window.VenanciaApiBaseUrl || ''}/api/content.js`;
+            contentScript.onload = loadAppScript;
+            contentScript.onerror = loadAppScript;
             document.head.appendChild(contentScript);
+            setTimeout(loadAppScript, 1500);
         })();
     </script>
 </body>

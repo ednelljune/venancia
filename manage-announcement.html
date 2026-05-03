@@ -366,7 +366,24 @@
         (function () {
             window.VENANCIA_ACTIVE_PAGE = 'announcements';
             const CACHE_KEY = 'venancia_content_cache';
-            const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+            const resolveApiBaseUrl = () => {
+                if (window.VenanciaApiBaseUrl) {
+                    return window.VenanciaApiBaseUrl;
+                }
+
+                const host = window.location.hostname;
+                if (
+                    host === 'localhost' ||
+                    host === '127.0.0.1' ||
+                    host.endsWith('.local') ||
+                    host === 'venancia.onrender.com'
+                ) {
+                    return '';
+                }
+
+                return 'https://venancia.onrender.com';
+            };
+            const apiBaseUrl = resolveApiBaseUrl();
 
             const boot = () => {
                 const authScript = document.createElement('script');

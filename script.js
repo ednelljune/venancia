@@ -1,4 +1,24 @@
 const initVenanciaSite = () => {
+    const resolveApiBaseUrl = () => {
+        if (window.VenanciaApiBaseUrl) {
+            return window.VenanciaApiBaseUrl;
+        }
+
+        const host = window.location.hostname;
+        if (
+            host === 'localhost' ||
+            host === '127.0.0.1' ||
+            host.endsWith('.local') ||
+            host === 'venancia.onrender.com'
+        ) {
+            return '';
+        }
+
+        return 'https://venancia.onrender.com';
+    };
+
+    const apiBaseUrl = resolveApiBaseUrl();
+
     // 1. Mobile Menu Toggle
     const menuToggle = document.querySelector('.mobile-menu-toggle');
     const menuClose = document.querySelector('.mobile-menu-close');
@@ -347,7 +367,7 @@ const initVenanciaSite = () => {
     const subscribeForm = document.getElementById('subscribe-form');
     const subscribeSuccess = document.getElementById('subscribe-success');
     const subscribeError = document.getElementById('subscribe-error');
-    const subscribeApiUrl = `${window.VenanciaApiBaseUrl || ''}/api/subscribe`;
+    const subscribeApiUrl = `${apiBaseUrl}/api/subscribe`;
 
     if (subscribeForm) {
         let subBtn = null;
@@ -652,7 +672,7 @@ const initVenanciaSite = () => {
     const subscribeFormBlog = document.getElementById('subscribe-form-blog');
     const subscribeSuccessBlog = document.getElementById('subscribe-success-blog');
     const subscribeErrorBlog = document.getElementById('subscribe-error-blog');
-    const subscribeApiUrlBlog = `${window.VenanciaApiBaseUrl || ''}/api/subscribe`;
+    const subscribeApiUrlBlog = `${apiBaseUrl}/api/subscribe`;
 
     if (subscribeFormBlog) {
         let subBtnBlog = null;

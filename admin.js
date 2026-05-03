@@ -2,7 +2,24 @@
 
 const initVenanciaAdmin = async () => {
     const auth = window.VenanciaSupabaseAuth;
-    const apiBaseUrl = window.VenanciaApiBaseUrl || '';
+    const resolveApiBaseUrl = () => {
+        if (window.VenanciaApiBaseUrl) {
+            return window.VenanciaApiBaseUrl;
+        }
+
+        const host = window.location.hostname;
+        if (
+            host === 'localhost' ||
+            host === '127.0.0.1' ||
+            host.endsWith('.local') ||
+            host === 'venancia.onrender.com'
+        ) {
+            return '';
+        }
+
+        return 'https://venancia.onrender.com';
+    };
+    const apiBaseUrl = resolveApiBaseUrl();
 
     if (!auth || typeof auth.requireSession !== 'function') {
         window.location.href = 'admin-login.html';

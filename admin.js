@@ -124,15 +124,15 @@ const initVenanciaAdmin = async () => {
 
         if (sendSpecificPickerStatus) {
             sendSpecificPickerStatus.innerText = subscriberEmails.length
-                ? `Showing ${filteredEmails.length} of ${subscriberEmails.length} subscriber${subscriberEmails.length === 1 ? '' : 's'}.`
-                : 'No subscribers available.';
+                ? `Showing ${filteredEmails.length} of ${subscriberEmails.length} active subscriber${subscriberEmails.length === 1 ? '' : 's'}.`
+                : 'No active subscribers available.';
         }
 
         if (!subscriberEmails.length) {
             sendSpecificPickerTableBody.innerHTML = `
                 <tr>
                     <td colspan="3" style="padding: 14px; color: var(--dark-grey); font-size: 0.9rem;">
-                        No subscribers available.
+                        No active subscribers available.
                     </td>
                 </tr>
             `;
@@ -195,7 +195,10 @@ const initVenanciaAdmin = async () => {
 
             const data = await response.json().catch(() => ({}));
             subscriberEmails = Array.isArray(data.subscribers)
-                ? data.subscribers.map((subscriber) => String(subscriber?.email || '').trim()).filter(Boolean)
+                ? data.subscribers
+                    .filter((subscriber) => String(subscriber?.status || 'active').trim().toLowerCase() === 'active')
+                    .map((subscriber) => String(subscriber?.email || '').trim())
+                    .filter(Boolean)
                 : [];
             subscriberPickerLoaded = true;
         } catch (error) {

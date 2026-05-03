@@ -126,8 +126,26 @@ function isMissingSubscribersTableError(body) {
     return String(body || '').includes('public.subscribers') || String(body || '').includes('PGRST205');
 }
 
+function isMissingSubscriberStatusColumnError(body) {
+    const message = String(body || '');
+    return message.includes('PGRST204') || (message.includes('status') && message.includes('does not exist'));
+}
+
 function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
+}
+
+function normalizeSubscriberStatus(status) {
+    const normalized = String(status || 'active').trim().toLowerCase();
+    if (normalized === 'unsubscribed' || normalized === 'inactive' || normalized === 'disabled') {
+        return 'unsubscribed';
+    }
+
+    return 'active';
+}
+
+function isActiveSubscriber(subscriber) {
+    return normalizeSubscriberStatus(subscriber?.status) === 'active';
 }
 
 function extractEmailAddress(value = '') {
@@ -148,7 +166,8 @@ function normalizeSubscriberRecord(row = {}) {
         email: normalizeEmail(row?.email),
         unsubscribeToken: String(row?.unsubscribeToken || row?.unsubscribe_token || '').trim(),
         createdAt: String(row?.createdAt || row?.created_at || '').trim(),
-        updatedAt: String(row?.updatedAt || row?.updated_at || '').trim()
+        updatedAt: String(row?.updatedAt || row?.updated_at || '').trim(),
+        status: normalizeSubscriberStatus(row?.status)
     };
 }
 
@@ -464,12 +483,23 @@ function localSeedStore() {
             const normalizedEmail = normalizeEmail(email);
             const existing = subscribers.get(normalizedEmail);
             if (existing) {
-                return { ...existing, created: false };
+                if (isActiveSubscriber(existing)) {
+                    return { ...existing, created: false };
+                }
+
+                const revived = {
+                    ...existing,
+                    status: 'active',
+                    updatedAt: new Date().toISOString()
+                };
+                subscribers.set(normalizedEmail, revived);
+                return { ...revived, created: true, reactivated: true };
             }
 
             const subscriber = {
                 email: normalizedEmail,
                 unsubscribeToken: createPostId(),
+                status: 'active',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -477,7 +507,18 @@ function localSeedStore() {
             return { ...subscriber, created: true };
         },
         async removeSubscriberByEmail(email) {
-            return subscribers.delete(normalizeEmail(email));
+            const normalizedEmail = normalizeEmail(email);
+            const existing = subscribers.get(normalizedEmail);
+            if (!existing) {
+                return false;
+            }
+
+            subscribers.set(normalizedEmail, {
+                ...existing,
+                status: 'unsubscribed',
+                updatedAt: new Date().toISOString()
+            });
+            return true;
         },
         async removeSubscriberByToken(token) {
             const normalizedToken = String(token || '').trim();
@@ -485,7 +526,11 @@ function localSeedStore() {
 
             for (const [email, subscriber] of subscribers.entries()) {
                 if (subscriber.unsubscribeToken === normalizedToken) {
-                    subscribers.delete(email);
+                    subscribers.set(email, {
+                        ...subscriber,
+                        status: 'unsubscribed',
+                        updatedAt: new Date().toISOString()
+                    });
                     return true;
                 }
             }
@@ -671,12 +716,34 @@ function supabaseStore() {
         },
         async getSubscriberByEmail(email) {
             const normalizedEmail = normalizeEmail(email);
-            const response = await supabaseRequest(`/subscribers?select=email,unsubscribe_token,created_at,updated_at&email=eq.${encodeURIComponent(normalizedEmail)}`, {
+            const response = await supabaseRequest(`/subscribers?select=email,unsubscribe_token,created_at,updated_at,status&email=eq.${encodeURIComponent(normalizedEmail)}`, {
                 method: 'GET'
             });
 
             if (!response.ok) {
                 const body = await response.text();
+                if (response.status === 400 && isMissingSubscriberStatusColumnError(body)) {
+                    const fallbackResponse = await supabaseRequest(`/subscribers?select=email,unsubscribe_token,created_at,updated_at&email=eq.${encodeURIComponent(normalizedEmail)}`, {
+                        method: 'GET'
+                    });
+
+                    if (!fallbackResponse.ok) {
+                        const fallbackBody = await fallbackResponse.text();
+                        if (fallbackResponse.status === 404 && isMissingSubscribersTableError(fallbackBody)) {
+                            return fallbackSubscribers.get(normalizedEmail) || null;
+                        }
+                        throw new Error(`Supabase subscriber lookup failed: ${fallbackResponse.status} ${fallbackBody}`);
+                    }
+
+                    const fallbackRows = await fallbackResponse.json();
+                    const fallbackRow = Array.isArray(fallbackRows) ? fallbackRows[0] : fallbackRows;
+                    if (!fallbackRow) {
+                        const fallbackSubscriber = fallbackSubscribers.get(normalizedEmail) || null;
+                        return fallbackSubscriber ? normalizeSubscriberRecord(fallbackSubscriber) : null;
+                    }
+
+                    return normalizeSubscriberRecord(fallbackRow);
+                }
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
                     return fallbackSubscribers.get(normalizedEmail) || null;
                 }
@@ -695,8 +762,51 @@ function supabaseStore() {
         async addSubscriber(email) {
             const normalizedEmail = normalizeEmail(email);
             const existing = await this.getSubscriberByEmail(normalizedEmail);
-            if (existing) {
+            if (existing && isActiveSubscriber(existing)) {
                 return { ...existing, created: false };
+            }
+
+            if (existing && !isActiveSubscriber(existing)) {
+                const response = await supabaseRequest(`/subscribers?email=eq.${encodeURIComponent(normalizedEmail)}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Prefer: 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        status: 'active'
+                    })
+                });
+
+                if (!response.ok) {
+                    const body = await response.text();
+                    if (response.status === 404 && isMissingSubscribersTableError(body)) {
+                        const subscriber = {
+                            email: normalizedEmail,
+                            unsubscribeToken: existing.unsubscribeToken || createPostId(),
+                            status: 'active',
+                            createdAt: existing.createdAt || new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+                        fallbackSubscribers.set(normalizedEmail, subscriber);
+                        return { ...subscriber, created: true, reactivated: true };
+                    }
+                    throw new Error(`Supabase re-subscribe failed: ${response.status} ${body}`);
+                }
+
+                const rows = await response.json();
+                const row = Array.isArray(rows) ? rows[0] : rows;
+                const subscriber = {
+                    email: normalizeEmail(row?.email || normalizedEmail),
+                    unsubscribeToken: String(row?.unsubscribe_token || existing.unsubscribeToken || '').trim() || createPostId(),
+                    status: normalizeSubscriberStatus(row?.status),
+                    createdAt: String(row?.created_at || existing.createdAt || '').trim() || new Date().toISOString(),
+                    updatedAt: String(row?.updated_at || '').trim() || new Date().toISOString(),
+                    created: true,
+                    reactivated: true
+                };
+                fallbackSubscribers.set(subscriber.email, subscriber);
+                return subscriber;
             }
 
             const response = await supabaseRequest('/subscribers', {
@@ -706,16 +816,65 @@ function supabaseStore() {
                     Prefer: 'return=representation'
                 },
                 body: JSON.stringify([{
-                    email: normalizedEmail
+                    email: normalizedEmail,
+                    status: 'active'
                 }])
             });
 
             if (!response.ok) {
                 const body = await response.text();
+                if (response.status === 400 && isMissingSubscriberStatusColumnError(body)) {
+                    const retryResponse = await supabaseRequest('/subscribers', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Prefer: 'return=representation'
+                        },
+                        body: JSON.stringify([{
+                            email: normalizedEmail
+                        }])
+                    });
+
+                    if (!retryResponse.ok) {
+                        const retryBody = await retryResponse.text();
+                        if (retryResponse.status === 404 && isMissingSubscribersTableError(retryBody)) {
+                            const subscriber = {
+                                email: normalizedEmail,
+                                unsubscribeToken: createPostId(),
+                                status: 'active',
+                                createdAt: new Date().toISOString(),
+                                updatedAt: new Date().toISOString()
+                            };
+                            fallbackSubscribers.set(normalizedEmail, subscriber);
+                            return { ...subscriber, created: true };
+                        }
+                        if (retryResponse.status === 409) {
+                            const existing = await this.getSubscriberByEmail(normalizedEmail);
+                            if (existing) {
+                                return { ...existing, created: false };
+                            }
+                        }
+                        throw new Error(`Supabase subscribe failed: ${retryResponse.status} ${retryBody}`);
+                    }
+
+                    const retryRows = await retryResponse.json();
+                    const retryRow = Array.isArray(retryRows) ? retryRows[0] : retryRows;
+                    const retrySubscriber = {
+                        email: normalizeEmail(retryRow?.email || normalizedEmail),
+                        unsubscribeToken: String(retryRow?.unsubscribe_token || '').trim() || createPostId(),
+                        status: normalizeSubscriberStatus(retryRow?.status),
+                        createdAt: String(retryRow?.created_at || '').trim() || new Date().toISOString(),
+                        updatedAt: String(retryRow?.updated_at || '').trim() || new Date().toISOString(),
+                        created: true
+                    };
+                    fallbackSubscribers.set(retrySubscriber.email, retrySubscriber);
+                    return retrySubscriber;
+                }
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
                     const subscriber = {
                         email: normalizedEmail,
                         unsubscribeToken: createPostId(),
+                        status: 'active',
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
                     };
@@ -736,6 +895,7 @@ function supabaseStore() {
             const subscriber = {
                 email: normalizeEmail(row?.email || normalizedEmail),
                 unsubscribeToken: String(row?.unsubscribe_token || '').trim() || createPostId(),
+                status: normalizeSubscriberStatus(row?.status),
                 createdAt: String(row?.created_at || '').trim() || new Date().toISOString(),
                 updatedAt: String(row?.updated_at || '').trim() || new Date().toISOString(),
                 created: true
@@ -746,21 +906,46 @@ function supabaseStore() {
         async removeSubscriberByEmail(email) {
             const normalizedEmail = normalizeEmail(email);
             const response = await supabaseRequest(`/subscribers?email=eq.${encodeURIComponent(normalizedEmail)}`, {
-                method: 'DELETE',
+                method: 'PATCH',
                 headers: {
-                    Prefer: 'return=minimal'
-                }
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=representation'
+                },
+                body: JSON.stringify({
+                    status: 'unsubscribed'
+                })
             });
 
             if (!response.ok) {
                 const body = await response.text();
+                if (response.status === 400 && isMissingSubscriberStatusColumnError(body)) {
+                    const error = new Error('Supabase subscribers table is missing the status column. Apply supabase-schema.sql before using unsubscribe.');
+                    error.statusCode = 500;
+                    throw error;
+                }
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
-                    return fallbackSubscribers.delete(normalizedEmail);
+                    const subscriber = fallbackSubscribers.get(normalizedEmail);
+                    if (!subscriber) {
+                        return false;
+                    }
+                    fallbackSubscribers.set(normalizedEmail, {
+                        ...subscriber,
+                        status: 'unsubscribed',
+                        updatedAt: new Date().toISOString()
+                    });
+                    return true;
                 }
                 throw new Error(`Supabase unsubscribe failed: ${response.status} ${body}`);
             }
 
-            fallbackSubscribers.delete(normalizedEmail);
+            const subscriber = fallbackSubscribers.get(normalizedEmail);
+            if (subscriber) {
+                fallbackSubscribers.set(normalizedEmail, {
+                    ...subscriber,
+                    status: 'unsubscribed',
+                    updatedAt: new Date().toISOString()
+                });
+            }
             return true;
         },
         async removeSubscriberByToken(token) {
@@ -768,18 +953,31 @@ function supabaseStore() {
             if (!normalizedToken) return false;
 
             const response = await supabaseRequest(`/subscribers?unsubscribe_token=eq.${encodeURIComponent(normalizedToken)}`, {
-                method: 'DELETE',
+                method: 'PATCH',
                 headers: {
-                    Prefer: 'return=minimal'
-                }
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=representation'
+                },
+                body: JSON.stringify({
+                    status: 'unsubscribed'
+                })
             });
 
             if (!response.ok) {
                 const body = await response.text();
+                if (response.status === 400 && isMissingSubscriberStatusColumnError(body)) {
+                    const error = new Error('Supabase subscribers table is missing the status column. Apply supabase-schema.sql before using unsubscribe.');
+                    error.statusCode = 500;
+                    throw error;
+                }
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
                     for (const [email, subscriber] of fallbackSubscribers.entries()) {
                         if (subscriber.unsubscribeToken === normalizedToken) {
-                            fallbackSubscribers.delete(email);
+                            fallbackSubscribers.set(email, {
+                                ...subscriber,
+                                status: 'unsubscribed',
+                                updatedAt: new Date().toISOString()
+                            });
                             return true;
                         }
                     }
@@ -790,19 +988,52 @@ function supabaseStore() {
 
             for (const [email, subscriber] of fallbackSubscribers.entries()) {
                 if (subscriber.unsubscribeToken === normalizedToken) {
-                    fallbackSubscribers.delete(email);
+                    fallbackSubscribers.set(email, {
+                        ...subscriber,
+                        status: 'unsubscribed',
+                        updatedAt: new Date().toISOString()
+                    });
                     break;
                 }
             }
             return true;
         },
         async listSubscribers() {
-            const response = await supabaseRequest('/subscribers?select=email,unsubscribe_token,created_at,updated_at', {
+            const response = await supabaseRequest('/subscribers?select=email,unsubscribe_token,created_at,updated_at,status', {
                 method: 'GET'
             });
 
             if (!response.ok) {
                 const body = await response.text();
+                if (response.status === 400 && isMissingSubscriberStatusColumnError(body)) {
+                    const fallbackResponse = await supabaseRequest('/subscribers?select=email,unsubscribe_token,created_at,updated_at', {
+                        method: 'GET'
+                    });
+
+                    if (!fallbackResponse.ok) {
+                        const fallbackBody = await fallbackResponse.text();
+                        if (fallbackResponse.status === 404 && isMissingSubscribersTableError(fallbackBody)) {
+                            return [...fallbackSubscribers.values()].map((subscriber) => ({ ...subscriber }));
+                        }
+                        throw new Error(`Supabase subscribers list failed: ${fallbackResponse.status} ${fallbackBody}`);
+                    }
+
+                    const fallbackRows = await fallbackResponse.json();
+                    const fallbackMerged = new Map();
+                    for (const row of (Array.isArray(fallbackRows) ? fallbackRows : [])) {
+                        const normalized = normalizeSubscriberRecord(row);
+                        if (normalized.email) {
+                            fallbackMerged.set(normalized.email, normalized);
+                        }
+                    }
+                    for (const subscriber of fallbackSubscribers.values()) {
+                        const normalized = normalizeSubscriberRecord(subscriber);
+                        if (normalized.email) {
+                            fallbackMerged.set(normalized.email, normalized);
+                        }
+                    }
+                    return sortSubscriberRecords([...fallbackMerged.values()]);
+                }
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
                     return [...fallbackSubscribers.values()].map((subscriber) => ({ ...subscriber }));
                 }
@@ -938,9 +1169,22 @@ async function getContentPayload() {
 async function getNotificationRecipients() {
     const subscribers = await store.listSubscribers().catch(() => []);
     const fromEmail = extractEmailAddress(resendFromEmail);
-    return subscribers
-        .map((row) => normalizeEmail(row.email))
-        .filter((email) => email && email !== fromEmail && !isExcludedSubscriberEmail(email));
+    const activeEmails = new Set();
+
+    for (const subscriber of subscribers) {
+        const email = normalizeEmail(subscriber?.email);
+        if (!email || email === fromEmail || isExcludedSubscriberEmail(email)) {
+            continue;
+        }
+
+        if (!isActiveSubscriber(subscriber)) {
+            continue;
+        }
+
+        activeEmails.add(email);
+    }
+
+    return [...activeEmails];
 }
 
 function buildPostNotificationHtml(post) {
@@ -1045,6 +1289,13 @@ async function resendPostToSubscribers(post, options = {}) {
 
         if (isExcludedSubscriberEmail(email)) {
             const error = new Error('That email address is excluded from subscriber sends.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const subscriber = await store.getSubscriberByEmail(email).catch(() => null);
+        if (subscriber && !isActiveSubscriber(subscriber)) {
+            const error = new Error('That email address is unsubscribed.');
             error.statusCode = 400;
             throw error;
         }

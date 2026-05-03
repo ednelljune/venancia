@@ -19,6 +19,7 @@ create table if not exists public.posts (
 create table if not exists public.subscribers (
     email text primary key,
     unsubscribe_token text not null unique,
+    status text not null default 'active',
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -26,12 +27,25 @@ create table if not exists public.subscribers (
 alter table public.subscribers
     add column if not exists unsubscribe_token text;
 
+alter table public.subscribers
+    add column if not exists status text;
+
 update public.subscribers
 set unsubscribe_token = gen_random_uuid()::text
 where unsubscribe_token is null or btrim(unsubscribe_token) = '';
 
+update public.subscribers
+set status = 'active'
+where status is null or btrim(status) = '';
+
 alter table public.subscribers
     alter column unsubscribe_token set not null;
+
+alter table public.subscribers
+    alter column status set default 'active';
+
+alter table public.subscribers
+    alter column status set not null;
 
 create unique index if not exists subscribers_unsubscribe_token_idx
     on public.subscribers (unsubscribe_token);
@@ -86,6 +100,11 @@ begin
     end if;
 
     new.email := lower(btrim(new.email));
+    if new.status is null or btrim(new.status) = '' then
+        new.status := 'active';
+    else
+        new.status := lower(btrim(new.status));
+    end if;
     if new.created_at is null then
         new.created_at = now();
     end if;

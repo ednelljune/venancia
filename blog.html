@@ -85,25 +85,27 @@
     </div>
 
     <main>
-        <!-- Featured Announcements -->
-        <section class="announcements" style="background: linear-gradient(135deg, var(--dark), #1a1a1a); padding: 100px 0 80px; color: white;">
-            <div class="container">
-                <div class="section-header" style="text-align: center; margin-bottom: 60px;" data-reveal="fade-up">
-                    <h2 class="section-title" style="color: white;">Featured <span class="highlight">Announcements</span></h2>
-                    <p style="color: rgba(255,255,255,0.7);">Stay ahead with the latest high-priority updates.</p>
-                </div>
-                <div id="announcements-grid" class="announcements-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;"></div>
-            </div>
-        </section>
-
-        <!-- All Insights & Opportunities Grid -->
+        <!-- Insights & Opportunities Overview -->
         <section class="insights-page-grid" style="padding: 100px 0; background-color: var(--white);">
             <div class="container">
                 <div class="section-header" style="text-align: center; margin-bottom: 60px;" data-reveal="fade-up">
                     <h2 class="section-title">All <span class="highlight">Insights & Opportunities</span></h2>
                     <p>Explore our full range of guides and updates for your journey to Europe.</p>
                 </div>
-                <div class="insights-grid" id="blog-grid"></div>
+                <div class="newsroom-split newsroom-split-light newsroom-split-wide">
+                    <div class="newsroom-featured-section">
+                        <div id="featured-updates-grid" class="newsroom-featured-grid"></div>
+                    </div>
+                    <aside class="newsroom-sidebar">
+                        <div class="newsroom-sidebar-heading">Latest updates</div>
+                        <div id="updates-list" class="newsroom-list"></div>
+                        <div class="newsroom-sidebar-nav">
+                            <button id="updates-prev" class="newsroom-sidebar-nav-btn" type="button">Previous</button>
+                            <span id="updates-page" class="newsroom-sidebar-nav-page">Page 1</span>
+                            <button id="updates-next" class="newsroom-sidebar-nav-btn" type="button">Next</button>
+                        </div>
+                    </aside>
+                </div>
             </div>
         </section>
 
@@ -162,16 +164,23 @@
                         <li><a href="index.html#contact">Contact</a></li>
                     </ul>
                 </div>
-                <div class="footer-links">
+                <div class="footer-links footer-destinations">
                     <h4>Destinations</h4>
-                    <ul>
-                        <li><a href="index.html#countries">Poland</a></li>
-                        <li><a href="index.html#countries">Norway</a></li>
-                        <li><a href="index.html#countries">Spain</a></li>
-                        <li><a href="index.html#countries">Germany</a></li>
-                        <li><a href="index.html#countries">Netherlands</a></li>
-                        <li><a href="index.html#countries">Nepal</a></li>
-                    </ul>
+                    <div class="footer-destination-grid">
+                        <ul>
+                            <li><a href="index.html#countries">Poland</a></li>
+                            <li><a href="index.html#countries">Norway</a></li>
+                            <li><a href="index.html#countries">Spain</a></li>
+                            <li><a href="index.html#countries">Germany</a></li>
+                            <li><a href="index.html#countries">Netherlands</a></li>
+                        </ul>
+                        <ul>
+                            <li><a href="index.html#countries">Macedonia</a></li>
+                            <li><a href="index.html#countries">Belarus</a></li>
+                            <li><a href="index.html#countries">Latvia</a></li>
+                            <li><a href="index.html#countries">Serbia</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">

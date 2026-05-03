@@ -221,8 +221,58 @@
             vertical-align: middle;
         }
 
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.unsubscribed {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
         .table-responsive {
             overflow-x: auto;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .pagination-info {
+            color: var(--dark-grey);
+            font-size: 0.92rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-controls .page-indicator {
+            font-size: 0.92rem;
+            color: var(--dark-grey);
+            min-width: 96px;
+            text-align: center;
         }
 
         .sub-email {
@@ -405,6 +455,7 @@
                     <thead>
                         <tr>
                             <th>Email Address</th>
+                            <th>Status</th>
                             <th>Subscribed</th>
                             <th>Updated</th>
                             <th>Token</th>
@@ -413,13 +464,22 @@
                     </thead>
                     <tbody id="subscriber-table-body">
                         <tr>
-                            <td colspan="5" class="empty-state">
+                            <td colspan="6" class="empty-state">
                                 <i class="fas fa-spinner fa-spin"></i>
                                 Loading subscribers...
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="table-footer">
+                <div class="pagination-info" id="pagination-info">Showing 0 of 0 subscribers</div>
+                <div class="pagination-controls">
+                    <button class="btn btn-outline" id="prev-page-btn" type="button">Previous</button>
+                    <span class="page-indicator" id="page-indicator">Page 0 of 0</span>
+                    <button class="btn btn-outline" id="next-page-btn" type="button">Next</button>
+                </div>
             </div>
         </section>
     </main>
@@ -454,10 +514,16 @@
             const refreshBtn = document.getElementById('refresh-btn');
             const exportBtn = document.getElementById('export-btn');
             const copyEmailsBtn = document.getElementById('copy-emails-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+            const pageIndicator = document.getElementById('page-indicator');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
             const logoutBtn = document.getElementById('logout-btn');
+            const pageSize = 10;
 
             const state = {
-                subscribers: []
+                subscribers: [],
+                currentPage: 1
             };
 
             const escapeHtml = (value) => String(value ?? '')
@@ -494,6 +560,23 @@
                 });
             };
 
+            const getPaginationState = (visibleSubscribers) => {
+                const totalItems = visibleSubscribers.length;
+                const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+                const currentPage = Math.min(Math.max(state.currentPage, 1), totalPages);
+                const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+                return {
+                    totalItems,
+                    totalPages,
+                    currentPage,
+                    startIndex,
+                    endIndex,
+                    pageItems: visibleSubscribers.slice(startIndex, endIndex)
+                };
+            };
+
             const setStatus = (message) => {
                 if (statusNote) {
                     statusNote.innerText = message;
@@ -502,23 +585,25 @@
 
             const renderSubscribers = () => {
                 const visibleSubscribers = filterSubscribers();
+                const pagination = getPaginationState(visibleSubscribers);
+                state.currentPage = pagination.currentPage;
 
                 if (subscriberCount) {
                     subscriberCount.innerText = String(state.subscribers.length);
                 }
 
                 if (visibleCount) {
-                    visibleCount.innerText = String(visibleSubscribers.length);
+                    visibleCount.innerText = String(pagination.totalItems);
                 }
 
                 if (!subscriberTableBody) {
                     return;
                 }
 
-                if (visibleSubscribers.length === 0) {
+                if (pagination.totalItems === 0) {
                     subscriberTableBody.innerHTML = `
                         <tr>
-                            <td colspan="5">
+                            <td colspan="6">
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
                                     No subscribers match the current filter.
@@ -526,19 +611,40 @@
                             </td>
                         </tr>
                     `;
+                    if (paginationInfo) {
+                        paginationInfo.innerText = 'Showing 0 of 0 subscribers';
+                    }
+                    if (pageIndicator) {
+                        pageIndicator.innerText = 'Page 0 of 0';
+                    }
+                    if (prevPageBtn) {
+                        prevPageBtn.disabled = true;
+                    }
+                    if (nextPageBtn) {
+                        nextPageBtn.disabled = true;
+                    }
                     return;
                 }
 
-                subscriberTableBody.innerHTML = visibleSubscribers.map((subscriber) => {
+                const startNumber = pagination.startIndex + 1;
+                const endNumber = pagination.endIndex;
+
+                subscriberTableBody.innerHTML = pagination.pageItems.map((subscriber) => {
                     const email = String(subscriber.email || '');
                     const unsubscribeToken = String(subscriber.unsubscribeToken || '');
+                    const status = String(subscriber.status || 'active').trim().toLowerCase() === 'unsubscribed'
+                        ? 'unsubscribed'
+                        : 'active';
                     const createdAt = formatDate(subscriber.createdAt);
                     const updatedAt = formatDate(subscriber.updatedAt || subscriber.createdAt);
                     return `
                         <tr>
                             <td>
                                 <span class="sub-email">${escapeHtml(email)}</span>
-                                <span class="sub-meta">${escapeHtml(subscriber.createdAt ? 'Active subscriber' : 'Imported record')}</span>
+                                <span class="sub-meta">${escapeHtml(status === 'active' ? 'Active subscriber' : 'Unsubscribed subscriber')}</span>
+                            </td>
+                            <td>
+                                <span class="status-badge ${escapeHtml(status)}">${escapeHtml(status)}</span>
                             </td>
                             <td>${escapeHtml(createdAt)}</td>
                             <td>${escapeHtml(updatedAt)}</td>
@@ -558,6 +664,22 @@
                         </tr>
                     `;
                 }).join('');
+
+                if (paginationInfo) {
+                    paginationInfo.innerText = `Showing ${startNumber}-${endNumber} of ${pagination.totalItems} subscribers`;
+                }
+
+                if (pageIndicator) {
+                    pageIndicator.innerText = `Page ${pagination.currentPage} of ${pagination.totalPages}`;
+                }
+
+                if (prevPageBtn) {
+                    prevPageBtn.disabled = pagination.currentPage <= 1;
+                }
+
+                if (nextPageBtn) {
+                    nextPageBtn.disabled = pagination.currentPage >= pagination.totalPages;
+                }
 
                 document.querySelectorAll('[data-copy-email]').forEach((button) => {
                     button.addEventListener('click', async () => {
@@ -613,10 +735,12 @@
 
                     const data = await response.json();
                     state.subscribers = Array.isArray(data.subscribers) ? data.subscribers : [];
+                    state.currentPage = 1;
                     setStatus(`Loaded ${state.subscribers.length} subscriber${state.subscribers.length === 1 ? '' : 's'}.`);
                     renderSubscribers();
                 } catch (error) {
                     state.subscribers = [];
+                    state.currentPage = 1;
                     renderSubscribers();
                     setStatus(error.message || 'Unable to load subscribers.');
                 } finally {
@@ -628,9 +752,10 @@
 
             const exportCsv = () => {
                 const rows = [
-                    ['email', 'unsubscribe_token', 'created_at', 'updated_at'],
+                    ['email', 'status', 'unsubscribe_token', 'created_at', 'updated_at'],
                     ...filterSubscribers().map((subscriber) => [
                         subscriber.email || '',
+                        subscriber.status || 'active',
                         subscriber.unsubscribeToken || '',
                         subscriber.createdAt || '',
                         subscriber.updatedAt || ''
@@ -678,7 +803,26 @@
                     }
 
                     if (searchInput) {
-                        searchInput.addEventListener('input', renderSubscribers);
+                        searchInput.addEventListener('input', () => {
+                            state.currentPage = 1;
+                            renderSubscribers();
+                        });
+                    }
+
+                    if (prevPageBtn) {
+                        prevPageBtn.addEventListener('click', () => {
+                            state.currentPage = Math.max(1, state.currentPage - 1);
+                            renderSubscribers();
+                        });
+                    }
+
+                    if (nextPageBtn) {
+                        nextPageBtn.addEventListener('click', () => {
+                            const visibleSubscribers = filterSubscribers();
+                            const totalPages = Math.max(1, Math.ceil(visibleSubscribers.length / pageSize));
+                            state.currentPage = Math.min(totalPages, state.currentPage + 1);
+                            renderSubscribers();
+                        });
                     }
 
                     if (refreshBtn) {

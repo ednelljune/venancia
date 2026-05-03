@@ -474,6 +474,35 @@ const initVenanciaSite = () => {
         return 'fa-briefcase';
     };
 
+    const uniquePostsById = (posts) => {
+        const seen = new Set();
+        return posts.filter((post) => {
+            if (!post?.id || seen.has(post.id)) {
+                return false;
+            }
+            seen.add(post.id);
+            return true;
+        });
+    };
+
+    const uniquePostsByContent = (posts) => {
+        const seen = new Set();
+        return posts.filter((post) => {
+            const key = [
+                String(post?.title || '').trim().toLowerCase(),
+                String(post?.category || '').trim().toLowerCase(),
+                String(getExcerpt(post) || '').trim().toLowerCase()
+            ].join('|');
+
+            if (seen.has(key)) {
+                return false;
+            }
+
+            seen.add(key);
+            return true;
+        });
+    };
+
     const getVisiblePosts = () => sortPosts(allPosts.filter((post) => !post.isAnnouncement));
     const getAnnouncements = () => sortPosts(allPosts.filter((post) => post.isAnnouncement));
 
@@ -497,15 +526,140 @@ const initVenanciaSite = () => {
         grid.innerHTML = announcements.map((post) => {
             const tagClass = post.tagClass || categoryTagClass(post.category);
             return `
-                <a href="article.html?post=${encodeURIComponent(post.id)}" class="announcement-card" style="background: rgba(255,255,255,0.03); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); position: relative; transition: var(--transition); text-decoration: none; display: block;" data-reveal="fade-up" data-category="${escapeHtml(post.category)}">
-                    <div style="margin-bottom: 20px;">
+                <a href="article.html?post=${encodeURIComponent(post.id)}" class="blog-card" style="background: white; padding: 25px; border-radius: 15px; border: 1px solid rgba(0,0,0,0.06); position: relative; transition: var(--transition); text-decoration: none; display: block; box-shadow: var(--shadow-light);" data-reveal="fade-up" data-category="${escapeHtml(post.category)}">
+                    <div style="margin-bottom: 15px;">
                         <span class="category-tag ${tagClass}" style="display: inline-block;">${escapeHtml(post.category)}</span>
                     </div>
-                    <h4 style="font-size: 1.5rem; margin-bottom: 12px; color: var(--white);">${escapeHtml(post.title)}</h4>
-                    <p style="font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6;">${escapeHtml(getExcerpt(post))}</p>
+                    <h4 style="font-size: 1.25rem; margin-bottom: 8px; color: inherit;">${escapeHtml(post.title)}</h4>
+                    <p style="font-size: 0.95rem; color: var(--dark-grey); line-height: 1.5;">${escapeHtml(getExcerpt(post))}</p>
                 </a>
             `;
         }).join('');
+    };
+
+    const renderFeaturedPosts = (container, posts, variant) => {
+        if (!container) return;
+
+        if (!posts.length) {
+            container.innerHTML = `
+                <div style="padding: 32px; border-radius: 24px; border: 1px dashed rgba(0,0,0,0.15); color: var(--dark-grey); text-align: center; background: rgba(255,255,255,0.9);">
+                    No content available yet.
+                </div>
+            `;
+            return;
+        }
+
+        const cardStyle = 'background: white; padding: 26px 28px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); position: relative; transition: var(--transition); text-decoration: none; display: block; box-shadow: var(--shadow-light);';
+
+        container.innerHTML = posts.slice(0, 3).map((post) => {
+            const tagClass = post.tagClass || categoryTagClass(post.category);
+            const excerpt = escapeHtml(getExcerpt(post));
+
+            return `
+                <a href="article.html?post=${encodeURIComponent(post.id)}" class="blog-card featured-post-card" data-reveal="fade-up" data-category="${escapeHtml(post.category)}" style="${cardStyle}">
+                    <div style="margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                        <span class="category-tag ${tagClass}" style="display: inline-block;">${escapeHtml(post.category)}</span>
+                        <span style="font-size: 0.8rem; color: var(--dark-grey); opacity: 0.6;"><i class="far fa-clock"></i> ${escapeHtml(post.readTime)}</span>
+                    </div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: inherit; line-height: 1.25;">${escapeHtml(post.title)}</h3>
+                    <p style="font-size: 0.9rem; color: var(--dark-grey); line-height: 1.65; margin-bottom: 0;">${excerpt}</p>
+                </a>
+            `;
+        }).join('');
+    };
+
+    const renderMergedFeaturedPosts = (container, posts) => {
+        if (!container) return;
+
+        const mergedPosts = posts.slice(0, 5);
+
+        if (mergedPosts.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 28px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 18px; color: var(--dark-grey); text-align: center; background: rgba(255,255,255,0.8);">
+                    No featured updates available yet.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = mergedPosts.map((post) => {
+            const tagClass = post.tagClass || categoryTagClass(post.category);
+            const cardStyle = 'background: white; padding: 26px 28px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); position: relative; transition: var(--transition); text-decoration: none; display: block; box-shadow: var(--shadow-light);';
+            const excerpt = escapeHtml(getExcerpt(post));
+
+            return `
+                <a href="article.html?post=${encodeURIComponent(post.id)}" class="blog-card featured-post-card" data-reveal="fade-up" data-category="${escapeHtml(post.category)}" style="${cardStyle}">
+                    <div style="margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                        <span class="category-tag ${tagClass}" style="display: inline-block;">${escapeHtml(post.category)}</span>
+                        <span style="font-size: 0.8rem; color: var(--dark-grey); opacity: 0.6;"><i class="far fa-clock"></i> ${escapeHtml(post.readTime)}</span>
+                    </div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: inherit; line-height: 1.25;">${escapeHtml(post.title)}</h3>
+                    <p style="font-size: 0.9rem; color: var(--dark-grey); line-height: 1.65; margin-bottom: 0;">${excerpt}</p>
+                </a>
+            `;
+        }).join('');
+    };
+
+    const renderSidebarList = (container, posts, emptyText) => {
+        if (!container) return;
+
+        if (!posts.length) {
+            container.innerHTML = `
+                <div class="newsroom-list-empty">
+                    ${escapeHtml(emptyText)}
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = posts.map((post) => {
+            const tagClass = post.tagClass || categoryTagClass(post.category);
+            return `
+                <a href="article.html?post=${encodeURIComponent(post.id)}" class="newsroom-list-item light" data-reveal="fade-up" data-category="${escapeHtml(post.category)}">
+                    <span class="newsroom-list-meta">
+                        <span class="category-tag ${tagClass}">${escapeHtml(post.category)}</span>
+                        <span><i class="far fa-clock"></i> ${escapeHtml(post.readTime)}</span>
+                    </span>
+                    <span class="newsroom-list-title">${escapeHtml(post.title)}</span>
+                    <span class="newsroom-list-submeta">
+                        <span><i class="far fa-calendar"></i> ${escapeHtml(post.date)}</span>
+                        <span><i class="fas ${escapeHtml(getPostIcon(post))}"></i></span>
+                    </span>
+                </a>
+            `;
+        }).join('');
+    };
+
+    const renderMergedSidebarList = (container, posts, emptyText, pageInfoEl, prevBtn, nextBtn, page = 0, pageSize = 6) => {
+        if (!container) return;
+
+        const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+        const safePage = Math.min(Math.max(page, 0), totalPages - 1);
+        const pagePosts = posts.slice(safePage * pageSize, safePage * pageSize + pageSize);
+        const hasMultiplePages = totalPages > 1;
+
+        renderSidebarList(container, pagePosts, emptyText);
+
+        if (pageInfoEl) {
+            pageInfoEl.innerText = hasMultiplePages ? `Page ${safePage + 1} of ${totalPages}` : '';
+            pageInfoEl.style.display = hasMultiplePages ? '' : 'none';
+        }
+
+        if (prevBtn) {
+            prevBtn.disabled = safePage === 0 || !hasMultiplePages;
+            prevBtn.style.display = hasMultiplePages ? '' : 'none';
+        }
+
+        if (nextBtn) {
+            nextBtn.disabled = safePage >= totalPages - 1 || !hasMultiplePages;
+            nextBtn.style.display = hasMultiplePages ? '' : 'none';
+        }
+
+        if (prevBtn?.parentElement) {
+            prevBtn.parentElement.style.display = hasMultiplePages ? 'flex' : 'none';
+        }
+
+        return { safePage, totalPages };
     };
 
     const renderBlogCards = (grid) => {
@@ -640,10 +794,88 @@ const initVenanciaSite = () => {
     };
 
     const renderBlogPage = () => {
-        const announcementsGrid = document.getElementById('announcements-grid');
-        const blogGrid = document.getElementById('blog-grid');
-        renderAnnouncementCards(announcementsGrid);
-        renderBlogCards(blogGrid);
+        const announcements = getAnnouncements();
+        const blogs = getVisiblePosts();
+        const mergedPosts = uniquePostsByContent(uniquePostsById(sortPosts([...announcements, ...blogs])));
+        const featuredPosts = mergedPosts.slice(0, 5);
+        const sidebarPosts = mergedPosts.slice(5);
+        let sidebarPage = 0;
+        const sidebarPageSize = 6;
+        const hasSidebarPagination = sidebarPosts.length > sidebarPageSize;
+        const featuredGrid = document.getElementById('featured-updates-grid');
+        const updatesList = document.getElementById('updates-list');
+        const updatesPage = document.getElementById('updates-page');
+        const updatesPrev = document.getElementById('updates-prev');
+        const updatesNext = document.getElementById('updates-next');
+        const updatesNav = updatesPrev?.parentElement || document.querySelector('.newsroom-sidebar-nav');
+
+        renderMergedFeaturedPosts(
+            featuredGrid,
+            featuredPosts
+        );
+
+        const updateSidebar = () => {
+            if (!hasSidebarPagination) {
+                renderSidebarList(
+                    updatesList,
+                    sidebarPosts.slice(0, sidebarPageSize),
+                    sidebarPosts.length ? 'No additional updates yet.' : 'No additional updates yet.'
+                );
+
+                if (updatesPage) {
+                    updatesPage.innerText = '';
+                    updatesPage.style.display = 'none';
+                }
+
+                if (updatesNav) {
+                    updatesNav.style.display = 'none';
+                }
+
+                return;
+            }
+
+            if (updatesNav) {
+                updatesNav.style.display = 'flex';
+            }
+
+            const result = renderMergedSidebarList(
+                updatesList,
+                sidebarPosts,
+                'No additional updates yet.',
+                updatesPage,
+                updatesPrev,
+                updatesNext,
+                sidebarPage,
+                sidebarPageSize
+            );
+
+            sidebarPage = result ? result.safePage : 0;
+        };
+
+        if (updatesPrev && hasSidebarPagination) {
+            updatesPrev.onclick = () => {
+                sidebarPage = Math.max(0, sidebarPage - 1);
+                updateSidebar();
+            };
+        }
+
+        if (updatesNext && hasSidebarPagination) {
+            updatesNext.onclick = () => {
+                sidebarPage = Math.min(
+                    Math.max(0, Math.ceil(sidebarPosts.length / sidebarPageSize) - 1),
+                    sidebarPage + 1
+                );
+                updateSidebar();
+            };
+        }
+
+        if (!hasSidebarPagination) {
+            sidebarPage = 0;
+            if (updatesPrev) updatesPrev.onclick = null;
+            if (updatesNext) updatesNext.onclick = null;
+        }
+
+        updateSidebar();
         observeRevealElements();
     };
 

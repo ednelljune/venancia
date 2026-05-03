@@ -1,5 +1,101 @@
 export const seedPosts = [
     {
+        id: 'australia-visitor-visa-600-update',
+        title: 'Australia Visitor Visa (Subclass 600) Update',
+        category: 'Urgent',
+        tagClass: 'gold',
+        icon: 'fa-bell',
+        iconClass: '',
+        date: 'May 3, 2026',
+        readTime: '2 min read',
+        isAnnouncement: true,
+        sortOrder: -4,
+        content: `
+            <p>The Department of Home Affairs currently lists the <strong>Visitor visa (subclass 600)</strong> as the relevant pathway for genuine temporary visits to Australia.</p>
+            <h3 style="margin: 30px 0 15px;">What applicants should know</h3>
+            <p>The older <strong>Tourist visa (subclass 676)</strong> is closed to new applications. If you are planning a short stay, check the Visitor visa subclass 600 page and confirm the right stream before you apply.</p>
+            <h3 style="margin: 30px 0 15px;">Official checks</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Use only the official Home Affairs website and ImmiAccount.</li>
+                <li style="margin-bottom: 10px;">Check visa details and conditions in VEVO.</li>
+                <li style="margin-bottom: 10px;">Make sure your travel plans match the visa conditions.</li>
+            </ul>
+            <p>This is an official-source reminder, not a visa decision. Always verify your own case directly with Home Affairs.</p>
+        `
+    },
+    {
+        id: 'australia-visitor-visa-600-blog',
+        title: 'Official Australian Visitor Visa (Subclass 600) Guidance',
+        category: 'Visa Updates',
+        tagClass: 'dark',
+        icon: 'fa-passport',
+        iconClass: 'dark',
+        date: 'May 3, 2026',
+        readTime: '4 min read',
+        isAnnouncement: false,
+        sortOrder: -3,
+        content: `
+            <p>If you are planning a short visit to Australia, the Department of Home Affairs says the relevant pathway is the <strong>Visitor visa (subclass 600)</strong>.</p>
+            <h3 style="margin: 30px 0 15px;">Key points</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">The Visitor visa is for genuine temporary visits.</li>
+                <li style="margin-bottom: 10px;">The older Tourist visa (subclass 676) is closed to new applications.</li>
+                <li style="margin-bottom: 10px;">You should check your own visa details and conditions in VEVO.</li>
+            </ul>
+            <h3 style="margin: 30px 0 15px;">Before you apply</h3>
+            <p>Use the official Home Affairs website to confirm the correct stream for tourism, family visits, or short-term travel. Do not rely on social media or third-party summaries when making a visa decision.</p>
+            <p><strong>Official references:</strong> Visitor visa (subclass 600), Tourist visa (subclass 676), and VEVO on the Department of Home Affairs website.</p>
+        `
+    },
+    {
+        id: 'australia-partner-visa-update',
+        title: 'Australia Partner Visa Update',
+        category: 'Important',
+        tagClass: '',
+        icon: 'fa-bell',
+        iconClass: '',
+        date: 'May 3, 2026',
+        readTime: '2 min read',
+        isAnnouncement: true,
+        sortOrder: -2,
+        content: `
+            <p>Partner visa applicants should use the official <strong>ImmiAccount</strong> process for lodging and managing their application.</p>
+            <h3 style="margin: 30px 0 15px;">What to keep updated</h3>
+            <p>If your circumstances change, including address, contact details, or relationship status, Home Affairs says you should update your details as soon as possible.</p>
+            <h3 style="margin: 30px 0 15px;">Official references</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Partner visa FAQ</li>
+                <li style="margin-bottom: 10px;">ImmiAccount</li>
+                <li style="margin-bottom: 10px;">VEVO for current visa details and conditions</li>
+            </ul>
+            <p>Always confirm your case through the official Home Affairs channels.</p>
+        `
+    },
+    {
+        id: 'australia-partner-visa-blog',
+        title: 'Official Australian Partner Visa Guidance',
+        category: 'Visa Updates',
+        tagClass: 'dark',
+        icon: 'fa-passport',
+        iconClass: 'dark',
+        date: 'May 3, 2026',
+        readTime: '4 min read',
+        isAnnouncement: false,
+        sortOrder: -1,
+        content: `
+            <p>For Partner visa applicants, the Department of Home Affairs directs people to use <strong>ImmiAccount</strong> to apply online and manage the application.</p>
+            <h3 style="margin: 30px 0 15px;">Why this matters</h3>
+            <p>The Partner visa FAQ explains that applicants should use the official system for application progress, travel questions, and changes in circumstances. If your relationship changes, you should notify Home Affairs through the correct official process.</p>
+            <h3 style="margin: 30px 0 15px;">Best practice</h3>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Keep your contact details current.</li>
+                <li style="margin-bottom: 10px;">Use VEVO to check current visa details and conditions.</li>
+                <li style="margin-bottom: 10px;">Follow the official Home Affairs instructions for any relationship update.</li>
+            </ul>
+            <p><strong>Official references:</strong> Partner visa FAQ, ImmiAccount, and VEVO.</p>
+        `
+    },
+    {
         id: 'philippines-skilled-migration-europe',
         title: 'Philippines Skilled Migration to Europe: What Applicants Should Know',
         category: 'New Policy',

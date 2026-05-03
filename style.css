@@ -484,6 +484,10 @@ body {
     align-items: center;
 }
 
+.about {
+    padding: 100px 0;
+}
+
 .about-image {
     position: relative;
     display: flex;
@@ -1530,6 +1534,10 @@ body {
     .about-grid, .services-grid, .why-grid, .contact-grid {
         grid-template-columns: 1fr;
         gap: 50px;
+    }
+
+    .about {
+        padding: 80px 0;
     }
     
     .about-experience {

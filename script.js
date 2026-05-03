@@ -401,8 +401,8 @@ const initVenanciaSite = () => {
                     if (response.status === 409 && subscribeError) {
                         const titleEl = subscribeError.querySelector('h4');
                         const textEl = subscribeError.querySelector('p');
-                        if (titleEl) titleEl.innerText = 'Already subscribed';
-                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, visit <a href="/unsubscribe.html">unsubscribe</a>.';
+                        if (titleEl) titleEl.innerText = 'You’re already subscribed';
+                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, use <a href="/unsubscribe.html">unsubscribe</a>.';
                         subscribeError.classList.remove('hidden');
                         if (subBtn) {
                             subBtn.innerText = originalBtnText;
@@ -416,9 +416,6 @@ const initVenanciaSite = () => {
                 subscribeForm.classList.add('hidden');
                 if (subscribeSuccess) {
                     subscribeSuccess.classList.remove('hidden');
-                    setTimeout(() => {
-                        subscribeSuccess.classList.add('hidden');
-                    }, 5000);
                 }
             } catch (error) {
                 if (subscribeError) {
@@ -706,8 +703,8 @@ const initVenanciaSite = () => {
                     if (response.status === 409 && subscribeErrorBlog) {
                         const titleEl = subscribeErrorBlog.querySelector('h4');
                         const textEl = subscribeErrorBlog.querySelector('p');
-                        if (titleEl) titleEl.innerText = 'Already subscribed';
-                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, visit <a href="/unsubscribe.html">unsubscribe</a>.';
+                        if (titleEl) titleEl.innerText = 'You’re already subscribed';
+                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, use <a href="/unsubscribe.html">unsubscribe</a>.';
                         subscribeErrorBlog.classList.remove('hidden');
                         if (subBtnBlog) {
                             subBtnBlog.innerText = originalBtnTextBlog;
@@ -721,9 +718,6 @@ const initVenanciaSite = () => {
                 subscribeFormBlog.classList.add('hidden');
                 if (subscribeSuccessBlog) {
                     subscribeSuccessBlog.classList.remove('hidden');
-                    setTimeout(() => {
-                        subscribeSuccessBlog.classList.add('hidden');
-                    }, 5000);
                 }
             } catch (error) {
                 if (subscribeErrorBlog) {

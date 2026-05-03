@@ -127,6 +127,28 @@ function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
 }
 
+function normalizeSubscriberRecord(row = {}) {
+    return {
+        email: normalizeEmail(row?.email),
+        unsubscribeToken: String(row?.unsubscribeToken || row?.unsubscribe_token || '').trim(),
+        createdAt: String(row?.createdAt || row?.created_at || '').trim(),
+        updatedAt: String(row?.updatedAt || row?.updated_at || '').trim()
+    };
+}
+
+function sortSubscriberRecords(list = []) {
+    return [...list].sort((a, b) => {
+        const aTime = Date.parse(a?.createdAt || a?.updatedAt || '');
+        const bTime = Date.parse(b?.createdAt || b?.updatedAt || '');
+
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime) && aTime !== bTime) {
+            return bTime - aTime;
+        }
+
+        return String(a?.email || '').localeCompare(String(b?.email || ''));
+    });
+}
+
 function buildUnsubscribeUrl(value = '') {
     const baseUrl = publicSiteUrl.replace(/\/$/, '');
     const tokenOrEmail = String(value || '').trim();
@@ -435,7 +457,9 @@ function localSeedStore() {
 
             const subscriber = {
                 email: normalizedEmail,
-                unsubscribeToken: createPostId()
+                unsubscribeToken: createPostId(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
             subscribers.set(normalizedEmail, subscriber);
             return { ...subscriber, created: true };
@@ -456,7 +480,7 @@ function localSeedStore() {
             return false;
         },
         async listSubscribers() {
-            return [...subscribers.values()].map((subscriber) => ({ ...subscriber }));
+            return sortSubscriberRecords([...subscribers.values()].map((subscriber) => normalizeSubscriberRecord(subscriber)));
         }
     };
 }
@@ -635,7 +659,7 @@ function supabaseStore() {
         },
         async getSubscriberByEmail(email) {
             const normalizedEmail = normalizeEmail(email);
-            const response = await supabaseRequest(`/subscribers?select=email,unsubscribe_token&email=eq.${encodeURIComponent(normalizedEmail)}`, {
+            const response = await supabaseRequest(`/subscribers?select=email,unsubscribe_token,created_at,updated_at&email=eq.${encodeURIComponent(normalizedEmail)}`, {
                 method: 'GET'
             });
 
@@ -650,13 +674,11 @@ function supabaseStore() {
             const rows = await response.json();
             const row = Array.isArray(rows) ? rows[0] : rows;
             if (!row) {
-                return fallbackSubscribers.get(normalizedEmail) || null;
+                const fallbackSubscriber = fallbackSubscribers.get(normalizedEmail) || null;
+                return fallbackSubscriber ? normalizeSubscriberRecord(fallbackSubscriber) : null;
             }
 
-            return {
-                email: normalizeEmail(row.email),
-                unsubscribeToken: String(row.unsubscribe_token || '').trim()
-            };
+            return normalizeSubscriberRecord(row);
         },
         async addSubscriber(email) {
             const normalizedEmail = normalizeEmail(email);
@@ -681,7 +703,9 @@ function supabaseStore() {
                 if (response.status === 404 && isMissingSubscribersTableError(body)) {
                     const subscriber = {
                         email: normalizedEmail,
-                        unsubscribeToken: createPostId()
+                        unsubscribeToken: createPostId(),
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
                     };
                     fallbackSubscribers.set(normalizedEmail, subscriber);
                     return { ...subscriber, created: true };
@@ -700,6 +724,8 @@ function supabaseStore() {
             const subscriber = {
                 email: normalizeEmail(row?.email || normalizedEmail),
                 unsubscribeToken: String(row?.unsubscribe_token || '').trim() || createPostId(),
+                createdAt: String(row?.created_at || '').trim() || new Date().toISOString(),
+                updatedAt: String(row?.updated_at || '').trim() || new Date().toISOString(),
                 created: true
             };
             fallbackSubscribers.set(subscriber.email, subscriber);
@@ -759,7 +785,7 @@ function supabaseStore() {
             return true;
         },
         async listSubscribers() {
-            const response = await supabaseRequest('/subscribers?select=email,unsubscribe_token', {
+            const response = await supabaseRequest('/subscribers?select=email,unsubscribe_token,created_at,updated_at', {
                 method: 'GET'
             });
 
@@ -775,24 +801,18 @@ function supabaseStore() {
             const dbRows = Array.isArray(rows) ? rows : [];
             const merged = new Map();
             for (const row of dbRows) {
-                const normalizedEmail = normalizeEmail(row?.email);
-                if (normalizedEmail) {
-                    merged.set(normalizedEmail, {
-                        email: normalizedEmail,
-                        unsubscribeToken: String(row?.unsubscribe_token || '').trim()
-                    });
+                const normalized = normalizeSubscriberRecord(row);
+                if (normalized.email) {
+                    merged.set(normalized.email, normalized);
                 }
             }
             for (const subscriber of fallbackSubscribers.values()) {
-                const normalizedEmail = normalizeEmail(subscriber?.email);
-                if (normalizedEmail) {
-                    merged.set(normalizedEmail, {
-                        email: normalizedEmail,
-                        unsubscribeToken: String(subscriber?.unsubscribeToken || '').trim()
-                    });
+                const normalized = normalizeSubscriberRecord(subscriber);
+                if (normalized.email) {
+                    merged.set(normalized.email, normalized);
                 }
             }
-            return [...merged.values()];
+            return sortSubscriberRecords([...merged.values()]);
         }
     };
 }
@@ -1073,16 +1093,23 @@ const server = createServer(async (req, res) => {
                 return;
             }
 
-            sendSubscriptionConfirmation(subscriber).catch((error) => {
+            let confirmation = { skipped: true };
+            try {
+                confirmation = await sendSubscriptionConfirmation(subscriber);
+            } catch (error) {
                 console.error('Subscription confirmation failed:', error);
-            });
+                confirmation = { sent: false, error: error.message || 'Confirmation email failed.' };
+            }
 
             res.writeHead(200, {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Cache-Control': 'no-store',
                 ...corsHeaders(origin)
             });
-            res.end(JSON.stringify({ ok: true }));
+            res.end(JSON.stringify({
+                ok: true,
+                confirmationEmail: confirmation
+            }));
             return;
         }
 
@@ -1107,6 +1134,17 @@ const server = createServer(async (req, res) => {
                 ok: true,
                 unsubscribed: removed
             }));
+            return;
+        }
+
+        if (url.pathname === '/api/subscribers' && req.method === 'GET') {
+            await store.ensureSeeded?.();
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({ subscribers: await store.listSubscribers() }));
             return;
         }
 

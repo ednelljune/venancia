@@ -116,8 +116,13 @@
 </head>
 <body>
     <main class="card">
-        <h1>Unsubscribe</h1>
-        <p>If you no longer want new blog post and announcement emails from Venancia, confirm your email below.</p>
+        <a href="/" style="display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-bottom: 24px; transition: color 0.2s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Back to website
+        </a>
+        
+        <h1>We're sad to see you go 💔</h1>
+        <p>We completely understand—inboxes can get overwhelming. If you're sure you want to stop receiving our latest visa updates and announcements, just confirm below.</p>
 
         <form id="unsubscribe-form" class="form">
             <div class="field">
@@ -125,17 +130,19 @@
                 <input type="email" id="unsubscribe-email" name="email" placeholder="you@example.com" required>
             </div>
             <input type="hidden" id="unsubscribe-token" name="token">
-            <button type="submit" id="unsubscribe-btn">Unsubscribe</button>
+            <button type="submit" id="unsubscribe-btn">Yes, Unsubscribe me</button>
         </form>
 
-        <div id="unsubscribe-success" class="message ok">
-            You have been unsubscribed.
+        <div id="unsubscribe-success" class="message ok" style="padding: 20px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">👋</div>
+            <strong>You've been successfully unsubscribed.</strong>
+            <p style="margin: 10px 0 0; color: inherit; font-size: 0.95rem;">We'll miss having you around. We wish you the absolute best on your journey!</p>
         </div>
         <div id="unsubscribe-error" class="message error">
-            Something went wrong. Please try again.
+            Something went wrong. Please try again or contact support if the issue persists.
         </div>
 
-        <p class="small">Need to resubscribe later? Return to the homepage and use the subscribe form again.</p>
+        <p class="small" style="text-align: center;">Changed your mind? Our door is always open. <br>Return to the <a href="/">homepage</a> to resubscribe anytime.</p>
     </main>
 
     <script>

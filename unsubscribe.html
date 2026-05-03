@@ -142,10 +142,12 @@
             Something went wrong. Please try again or contact support if the issue persists.
         </div>
 
-        <p class="small" style="text-align: center;">Changed your mind? Our door is always open. <br>Return to the <a href="/">homepage</a> to resubscribe anytime.</p>
+    <p class="small" style="text-align: center;">Changed your mind? Our door is always open. <br>Return to the <a href="/">homepage</a> to resubscribe anytime.</p>
     </main>
 
+    <script src="/api-base.js"></script>
     <script>
+        const apiBaseUrl = window.VenanciaApiBaseUrl || '';
         const params = new URLSearchParams(window.location.search);
         const emailInput = document.getElementById('unsubscribe-email');
         const tokenInput = document.getElementById('unsubscribe-token');
@@ -177,7 +179,7 @@
             btn.textContent = 'Unsubscribing...';
 
             try {
-                const response = await fetch('/api/unsubscribe', {
+                const response = await fetch(`${apiBaseUrl}/api/unsubscribe`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

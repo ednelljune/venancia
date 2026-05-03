@@ -61,10 +61,28 @@ const initVenanciaAdmin = async () => {
     const postContentInput = document.getElementById('post-content-input');
     const postAnnouncementInput = document.getElementById('post-announcement-input');
     const resendPostBtn = document.getElementById('resend-post-btn');
+    const sendOptionsModal = document.getElementById('send-options-modal');
+    const sendOptionsTitle = document.getElementById('send-options-title');
+    const sendOptionsSubtitle = document.getElementById('send-options-subtitle');
+    const sendOptionsCloseBtn = document.getElementById('send-options-close-btn');
+    const sendSpecificForm = document.getElementById('send-specific-form');
+    const sendSpecificEmailInput = document.getElementById('send-specific-email');
+    const sendSpecificPickerBtn = document.getElementById('send-specific-picker-btn');
+    const sendSpecificPickerPanel = document.getElementById('send-specific-picker-panel');
+    const sendSpecificPickerSearch = document.getElementById('send-specific-picker-search');
+    const sendSpecificPickerTableBody = document.getElementById('send-specific-picker-table-body');
+    const sendSpecificPickerStatus = document.getElementById('send-specific-picker-status');
+    const sendAllBtn = document.getElementById('send-all-btn');
+    const sendSpecificBtn = document.getElementById('send-specific-btn');
     const exportTextarea = document.getElementById('export-textarea');
 
     const closeModalButtons = document.querySelectorAll('.close-modal');
     const tabLinks = document.querySelectorAll('.nav-item[data-tab]');
+    let pendingSendPostId = '';
+    let subscriberPickerLoaded = false;
+    let subscriberPickerLoading = false;
+    let subscriberEmails = [];
+    let subscriberPickerSearchQuery = '';
 
     const setInputValue = (input, value) => {
         if (input) {
@@ -74,6 +92,121 @@ const initVenanciaAdmin = async () => {
 
     const getInputValue = (input, fallback = '') => {
         return input ? String(input.value || '').trim() : fallback;
+    };
+
+    const escapeHtml = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const renderSubscriberPicker = () => {
+        if (!sendSpecificPickerTableBody) {
+            return;
+        }
+
+        if (subscriberPickerLoading) {
+            if (sendSpecificPickerStatus) {
+                sendSpecificPickerStatus.innerText = 'Loading subscribers...';
+            }
+            sendSpecificPickerTableBody.innerHTML = '';
+            return;
+        }
+
+        const filteredEmails = subscriberEmails.filter((email) => {
+            if (!subscriberPickerSearchQuery) {
+                return true;
+            }
+
+            return email.toLowerCase().includes(subscriberPickerSearchQuery.toLowerCase());
+        });
+
+        if (sendSpecificPickerStatus) {
+            sendSpecificPickerStatus.innerText = subscriberEmails.length
+                ? `Showing ${filteredEmails.length} of ${subscriberEmails.length} subscriber${subscriberEmails.length === 1 ? '' : 's'}.`
+                : 'No subscribers available.';
+        }
+
+        if (!subscriberEmails.length) {
+            sendSpecificPickerTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" style="padding: 14px; color: var(--dark-grey); font-size: 0.9rem;">
+                        No subscribers available.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        if (!filteredEmails.length) {
+            sendSpecificPickerTableBody.innerHTML = `
+                <tr>
+                    <td colspan="3" style="padding: 14px; color: var(--dark-grey); font-size: 0.9rem;">
+                        No subscribers match your search.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        sendSpecificPickerTableBody.innerHTML = filteredEmails.map((email, index) => `
+            <tr data-subscriber-email-row="${escapeHtml(email)}" style="cursor: pointer; ${index % 2 === 0 ? 'background: #fff;' : 'background: #fafafa;'}">
+                <td style="padding: 12px 14px; border-bottom: 1px solid #eee; font-weight: 600; color: var(--dark);">
+                    ${escapeHtml(email)}
+                </td>
+                <td style="padding: 12px 14px; border-bottom: 1px solid #eee; color: var(--dark-grey); font-size: 0.85rem;">
+                    Subscriber
+                </td>
+                <td style="padding: 12px 14px; border-bottom: 1px solid #eee; text-align: right;">
+                    <button type="button" class="btn btn-outline" style="padding: 8px 12px; font-size: 0.8rem;">
+                        Select
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        document.querySelectorAll('[data-subscriber-email-row]').forEach((row) => {
+            row.addEventListener('click', () => {
+                const email = row.getAttribute('data-subscriber-email-row') || '';
+                if (sendSpecificEmailInput) {
+                    sendSpecificEmailInput.value = email;
+                    sendSpecificEmailInput.focus();
+                    sendSpecificEmailInput.select();
+                }
+            });
+        });
+    };
+
+    const loadSubscriberPicker = async () => {
+        if (subscriberPickerLoaded || subscriberPickerLoading) {
+            renderSubscriberPicker();
+            return;
+        }
+
+        subscriberPickerLoading = true;
+        renderSubscriberPicker();
+
+        try {
+            const response = await fetch(`${apiBaseUrl}/api/subscribers`, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error('Unable to load subscribers.');
+            }
+
+            const data = await response.json().catch(() => ({}));
+            subscriberEmails = Array.isArray(data.subscribers)
+                ? data.subscribers.map((subscriber) => String(subscriber?.email || '').trim()).filter(Boolean)
+                : [];
+            subscriberPickerLoaded = true;
+        } catch (error) {
+            subscriberEmails = [];
+            if (sendSpecificPickerStatus) {
+                sendSpecificPickerStatus.innerText = error.message || 'Unable to load subscribers.';
+            }
+        } finally {
+            subscriberPickerLoading = false;
+            renderSubscriberPicker();
+        }
     };
 
     const toDateInputValue = (value) => {
@@ -112,13 +245,6 @@ const initVenanciaAdmin = async () => {
             year: 'numeric'
         }).format(parsed);
     };
-
-    const escapeHtml = (value) => String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 
     const stripHtml = (value) => String(value || '')
         .replace(/<[^>]*>/g, ' ')
@@ -370,31 +496,89 @@ const initVenanciaAdmin = async () => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 const target = posts.find((post) => post.id === id);
-                if (!target || !confirm(`Resend "${target.title}" to all subscribers?`)) return;
-
-                const originalHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-                try {
-                    const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}/resend`, {
-                        method: 'POST'
-                    });
-
-                    if (!response.ok) {
-                        const data = await response.json().catch(() => ({}));
-                        throw new Error(data.error || 'Failed to resend the post.');
-                    }
-
-                    alert('The post was resent to subscribers.');
-                } catch (error) {
-                    alert(error.message || 'Failed to resend the post.');
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                }
+                if (!target) return;
+                openSendOptionsModal(id);
             });
         });
+    };
+
+    const openSendOptionsModal = (id) => {
+        const target = posts.find((post) => post.id === id);
+        if (!target || !sendOptionsModal) {
+            return;
+        }
+
+        pendingSendPostId = id;
+        if (sendOptionsTitle) {
+            sendOptionsTitle.innerText = target.isAnnouncement ? 'Send Announcement' : 'Send Blog Post';
+        }
+        if (sendOptionsSubtitle) {
+            sendOptionsSubtitle.innerText = `Choose whether to send "${target.title}" to all subscribers or a specific email address.`;
+        }
+        if (sendSpecificEmailInput) {
+            sendSpecificEmailInput.value = '';
+        }
+        subscriberPickerSearchQuery = '';
+        if (sendSpecificPickerSearch) {
+            sendSpecificPickerSearch.value = '';
+        }
+        if (sendSpecificPickerPanel) {
+            sendSpecificPickerPanel.style.display = 'none';
+        }
+        if (sendSpecificPickerBtn) {
+            sendSpecificPickerBtn.innerHTML = '<i class="fas fa-plus"></i>';
+        }
+        sendOptionsModal.style.display = 'flex';
+        sendSpecificEmailInput?.focus();
+        loadSubscriberPicker();
+    };
+
+    const closeSendOptionsModal = () => {
+        if (sendOptionsModal) {
+            sendOptionsModal.style.display = 'none';
+        }
+        pendingSendPostId = '';
+        if (sendSpecificEmailInput) {
+            sendSpecificEmailInput.value = '';
+        }
+        subscriberPickerSearchQuery = '';
+        if (sendSpecificPickerSearch) {
+            sendSpecificPickerSearch.value = '';
+        }
+        if (sendSpecificPickerPanel) {
+            sendSpecificPickerPanel.style.display = 'none';
+        }
+        if (sendSpecificPickerBtn) {
+            sendSpecificPickerBtn.innerHTML = '<i class="fas fa-plus"></i>';
+        }
+    };
+
+    const sendCurrentPost = async ({ recipientMode, email }) => {
+        if (!pendingSendPostId) {
+            throw new Error('No post selected.');
+        }
+
+        const modePath = recipientMode === 'single' ? 'send-single' : 'send-all';
+        const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(pendingSendPostId)}/${modePath}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                recipientMode,
+                email
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to send the post.');
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        const recipientCount = Number(payload.recipientCount || 0);
+        closeSendOptionsModal();
+        alert(`The post was sent to ${recipientCount} recipient${recipientCount === 1 ? '' : 's'}.`);
     };
 
     const openEditModal = (id) => {
@@ -418,28 +602,7 @@ const initVenanciaAdmin = async () => {
             resendPostBtn.onclick = async () => {
                 const currentId = editIdInput.value.trim();
                 if (!currentId) return;
-
-                const originalText = resendPostBtn.innerText;
-                resendPostBtn.disabled = true;
-                resendPostBtn.innerText = 'Resending...';
-
-                try {
-                    const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(currentId)}/resend`, {
-                        method: 'POST'
-                    });
-
-                    if (!response.ok) {
-                        const data = await response.json().catch(() => ({}));
-                        throw new Error(data.error || 'Failed to resend the post.');
-                    }
-
-                    alert('The post was resent to subscribers.');
-                } catch (error) {
-                    alert(error.message || 'Failed to resend the post.');
-                } finally {
-                    resendPostBtn.disabled = false;
-                    resendPostBtn.innerText = originalText;
-                }
+                openSendOptionsModal(currentId);
             };
         }
         postModal.style.display = 'flex';
@@ -456,7 +619,7 @@ const initVenanciaAdmin = async () => {
             resendPostBtn.style.display = 'none';
             resendPostBtn.disabled = false;
             resendPostBtn.onclick = null;
-            resendPostBtn.innerText = 'Resend to Subscribers';
+            resendPostBtn.innerText = 'Send Post';
         }
         postModal.style.display = 'flex';
     };
@@ -509,7 +672,7 @@ const initVenanciaAdmin = async () => {
             resendPostBtn.style.display = 'none';
             resendPostBtn.disabled = false;
             resendPostBtn.onclick = null;
-            resendPostBtn.innerText = 'Resend to Subscribers';
+            resendPostBtn.innerText = 'Send Post';
         }
     };
 
@@ -539,14 +702,23 @@ const initVenanciaAdmin = async () => {
         btn.addEventListener('click', () => {
             postModal.style.display = 'none';
             exportModal.style.display = 'none';
+            closeSendOptionsModal();
             if (resendPostBtn) {
                 resendPostBtn.style.display = 'none';
                 resendPostBtn.disabled = false;
                 resendPostBtn.onclick = null;
-                resendPostBtn.innerText = 'Resend to Subscribers';
+                resendPostBtn.innerText = 'Send Post';
             }
         });
     });
+
+    if (sendOptionsCloseBtn) {
+        sendOptionsCloseBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            closeSendOptionsModal();
+        });
+    }
 
     if (postForm) {
         postForm.addEventListener('submit', async (event) => {
@@ -586,6 +758,66 @@ const initVenanciaAdmin = async () => {
                 exportTextarea.select();
                 document.execCommand('copy');
                 alert('Configuration copied to clipboard!');
+            }
+        });
+    }
+
+    if (sendAllBtn) {
+        sendAllBtn.addEventListener('click', async () => {
+            try {
+                sendAllBtn.disabled = true;
+                sendAllBtn.innerText = 'Sending...';
+                await sendCurrentPost({ recipientMode: 'all' });
+            } catch (error) {
+                alert(error.message || 'Failed to send the post.');
+            } finally {
+                sendAllBtn.disabled = false;
+                sendAllBtn.innerText = 'Send to All Subscribers';
+            }
+        });
+    }
+
+    if (sendSpecificPickerBtn) {
+        sendSpecificPickerBtn.addEventListener('click', async () => {
+            if (!sendSpecificPickerPanel) {
+                return;
+            }
+
+            const isOpen = sendSpecificPickerPanel.style.display === 'block';
+            sendSpecificPickerPanel.style.display = isOpen ? 'none' : 'block';
+            sendSpecificPickerBtn.innerHTML = isOpen
+                ? '<i class="fas fa-plus"></i>'
+                : '<i class="fas fa-xmark"></i>';
+            if (!isOpen) {
+                await loadSubscriberPicker();
+            }
+        });
+    }
+
+    if (sendSpecificPickerSearch) {
+        sendSpecificPickerSearch.addEventListener('input', () => {
+            subscriberPickerSearchQuery = String(sendSpecificPickerSearch.value || '').trim();
+            renderSubscriberPicker();
+        });
+    }
+
+    if (sendSpecificForm) {
+        sendSpecificForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = String(sendSpecificEmailInput?.value || '').trim();
+            try {
+                if (sendSpecificBtn) {
+                    sendSpecificBtn.disabled = true;
+                    sendSpecificBtn.innerText = 'Sending...';
+                }
+                await sendCurrentPost({ recipientMode: 'single', email });
+            } catch (error) {
+                alert(error.message || 'Failed to send the post.');
+            } finally {
+                if (sendSpecificBtn) {
+                    sendSpecificBtn.disabled = false;
+                    sendSpecificBtn.innerText = 'Send to Email';
+                }
             }
         });
     }

@@ -132,6 +132,7 @@
         .admin-table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.92rem;
         }
 
         .admin-table th {
@@ -358,9 +359,54 @@
                 </div>
                 <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Save Announcement</button>
-                    <button type="button" id="resend-post-btn" class="btn btn-secondary" style="display:none;">Resend to Subscribers</button>
+                    <button type="button" id="resend-post-btn" class="btn btn-secondary" style="display:none;">Send Post</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Send Options Modal -->
+    <div class="modal" id="send-options-modal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h2 id="send-options-title">Send Announcement</h2>
+                <button type="button" class="close-modal" id="send-options-close-btn" aria-label="Close send modal" style="background: none; border: 0; font-size: 1.5rem; cursor: pointer; color: var(--dark-grey);">&times;</button>
+            </div>
+            <p id="send-options-subtitle" style="margin-bottom: 18px; color: var(--dark-grey);">
+                Choose whether to send this post to all subscribers or a specific email address.
+            </p>
+            <p style="margin-bottom: 18px; font-size: 0.9rem; color: var(--dark-grey); opacity: 0.75;">
+                The system no-reply address is excluded automatically.
+            </p>
+            <button type="button" class="btn btn-primary" id="send-all-btn" style="width: 100%; margin-bottom: 18px;">Send to All Subscribers</button>
+            <div style="border-top: 1px solid #eee; padding-top: 20px;">
+                <form id="send-specific-form" class="admin-form" style="margin-top: 0;">
+                    <div class="form-group">
+                        <label for="send-specific-email">Specific Email</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="email" id="send-specific-email" placeholder="name@example.com" required style="flex: 1;">
+                            <button type="button" id="send-specific-picker-btn" class="btn btn-outline" style="width: 44px; min-width: 44px; padding: 0 12px;"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div id="send-specific-picker-panel" style="display: none; margin-bottom: 16px; padding: 14px; border: 1px solid #eee; border-radius: 12px; background: #fafafa;">
+                        <input type="search" id="send-specific-picker-search" placeholder="Search subscribers" style="width: 100%; margin-bottom: 12px; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px;">
+                        <div id="send-specific-picker-status" style="margin-bottom: 12px; font-size: 0.9rem; color: var(--dark-grey);">Loading subscribers...</div>
+                        <div style="overflow-x: auto;">
+                            <table class="admin-table" style="background: white; border-radius: 12px; overflow: hidden;">
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th style="text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="send-specific-picker-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-outline" id="send-specific-btn" style="width: 100%;">Send to Email</button>
+                </form>
+            </div>
         </div>
     </div>
 

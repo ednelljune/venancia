@@ -184,7 +184,7 @@ function buildPostUrl(post) {
 function buildPostSummary(post) {
     const excerpt = buildExcerpt(post.content);
     return `
-        <p style="margin: 0 0 30px; color: #e0e0e0; font-size: 16px; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto;">${escapeHtml(excerpt)}</p>
+        <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6; max-width: 400px; margin-left: auto; margin-right: auto;">${escapeHtml(excerpt)}</p>
         <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
             <tr>
                 <td align="center" style="border-radius: 8px; background-color: #FF8A00; background: linear-gradient(135deg, #FFB800, #FF8A00);">
@@ -255,11 +255,11 @@ async function sendSubscriptionConfirmation(subscriber) {
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5; padding: 40px 20px;">
         <tr>
             <td align="center">
-                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #1A1A1A; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);">
+                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);">
                     <!-- Header -->
                     <tr>
                         <td align="center" style="padding: 40px 40px 20px;">
-                            <h2 style="margin: 0; color: #ffffff; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
+                            <h2 style="margin: 0; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
                                 <span style="color: #FFB800;">Venancia</span> Consultancy
                             </h2>
                         </td>
@@ -272,8 +272,8 @@ async function sendSubscriptionConfirmation(subscriber) {
                                     <tr><td align="center" valign="middle" style="color: #FF8A00; font-size: 32px; line-height: 1;">✓</td></tr>
                                 </table>
                             </div>
-                            <h1 style="margin: 0 0 16px; color: #ffffff; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700;">Thanks for Subscribing!</h1>
-                            <p style="margin: 0 0 30px; color: #e0e0e0; font-size: 16px; line-height: 1.6; max-width: 400px;">
+                            <h1 style="margin: 0 0 16px; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700;">Thanks for Subscribing!</h1>
+                            <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6; max-width: 400px;">
                                 You’re now officially on the list. We'll send you our latest news, visa updates, and announcements directly to your inbox.
                             </p>
                             
@@ -288,15 +288,15 @@ async function sendSubscriptionConfirmation(subscriber) {
                     </tr>
                     <!-- Footer -->
                     <tr>
-                        <td align="center" style="padding: 30px 40px; background-color: #222222; border-top: 1px solid #333333;">
+                        <td align="center" style="padding: 30px 40px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
                             <p style="margin: 0 0 8px; color: #888888; font-size: 14px;">
                                 © ${new Date().getFullYear()} Venancia Consultancy. All rights reserved.
                             </p>
-                            <p style="margin: 0; color: #666666; font-size: 12px;">
+                            <p style="margin: 0; color: #aaaaaa; font-size: 12px;">
                                 You received this email because you subscribed to updates on our website.
                             </p>
-                            <p style="margin: 8px 0 0; color: #666666; font-size: 12px;">
-                                <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FFB800; text-decoration: none;">Unsubscribe</a>
+                            <p style="margin: 8px 0 0; color: #aaaaaa; font-size: 12px;">
+                                <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FF8A00; text-decoration: none;">Unsubscribe</a>
                             </p>
                         </td>
                     </tr>
@@ -313,10 +313,6 @@ async function sendSubscriptionConfirmation(subscriber) {
         subject,
         html
     });
-}
-
-async function resendPostToSubscribers(post) {
-    return notifySubscribers(post);
 }
 
 async function supabaseRequest(pathname, options = {}) {
@@ -939,22 +935,16 @@ async function getContentPayload() {
     return cachedContentPayload;
 }
 
-async function notifySubscribers(post) {
+async function getNotificationRecipients() {
     const subscribers = await store.listSubscribers().catch(() => []);
     const fromEmail = extractEmailAddress(resendFromEmail);
-    const emails = subscribers
+    return subscribers
         .map((row) => normalizeEmail(row.email))
         .filter((email) => email && email !== fromEmail && !isExcludedSubscriberEmail(email));
+}
 
-    if (emails.length === 0 || !resendApiKey) {
-        return { skipped: true, recipientCount: emails.length };
-    }
-
-    const subject = post.isAnnouncement
-        ? `New announcement: ${post.title}`
-        : `New blog post: ${post.title}`;
-
-    const html = `
+function buildPostNotificationHtml(post) {
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -966,16 +956,14 @@ async function notifySubscribers(post) {
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5; padding: 40px 20px;">
         <tr>
             <td align="center">
-                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #1A1A1A; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);">
-                    <!-- Header -->
+                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);">
                     <tr>
                         <td align="center" style="padding: 40px 40px 20px;">
-                            <h2 style="margin: 0; color: #ffffff; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
+                            <h2 style="margin: 0; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
                                 <span style="color: #FFB800;">Venancia</span> Consultancy
                             </h2>
                         </td>
                     </tr>
-                    <!-- Body -->
                     <tr>
                         <td align="center" style="padding: 20px 40px 40px;">
                             <div style="background-color: rgba(255, 184, 0, 0.1); padding: 8px 16px; border-radius: 50px; display: inline-block; margin-bottom: 24px;">
@@ -983,24 +971,23 @@ async function notifySubscribers(post) {
                                     New ${post.isAnnouncement ? 'Announcement' : 'Blog Post'}
                                 </span>
                             </div>
-                            <h1 style="margin: 0 0 16px; color: #ffffff; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700; line-height: 1.3;">${escapeHtml(post.title)}</h1>
-                            <p style="margin: 0 0 24px; color: #888888; font-size: 14px; font-weight: 500;">
+                            <h1 style="margin: 0 0 16px; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700; line-height: 1.3;">${escapeHtml(post.title)}</h1>
+                            <p style="margin: 0 0 24px; color: #666666; font-size: 14px; font-weight: 500;">
                                 ${escapeHtml(post.category)} &nbsp;•&nbsp; ${escapeHtml(post.date)}
                             </p>
                             ${buildPostSummary(post)}
                         </td>
                     </tr>
-                    <!-- Footer -->
                     <tr>
-                        <td align="center" style="padding: 30px 40px; background-color: #222222; border-top: 1px solid #333333;">
+                        <td align="center" style="padding: 30px 40px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
                             <p style="margin: 0 0 8px; color: #888888; font-size: 14px;">
                                 © ${new Date().getFullYear()} Venancia Consultancy. All rights reserved.
                             </p>
-                            <p style="margin: 0; color: #666666; font-size: 12px;">
+                            <p style="margin: 0; color: #aaaaaa; font-size: 12px;">
                                 You received this email because you subscribed to updates on our website.
                             </p>
-                            <p style="margin: 8px 0 0; color: #666666; font-size: 12px;">
-                                <a href="${escapeHtml(buildUnsubscribeUrl())}" style="color: #FFB800; text-decoration: none;">Unsubscribe</a>
+                            <p style="margin: 8px 0 0; color: #aaaaaa; font-size: 12px;">
+                                <a href="${escapeHtml(buildUnsubscribeUrl())}" style="color: #FF8A00; text-decoration: none;">Unsubscribe</a>
                             </p>
                         </td>
                     </tr>
@@ -1011,25 +998,74 @@ async function notifySubscribers(post) {
 </body>
 </html>
     `;
+}
 
-    const batches = [];
-    for (let i = 0; i < emails.length; i += 49) {
-        batches.push(emails.slice(i, i + 49));
+async function sendPostNotifications(post, emails) {
+    if (!resendApiKey) {
+        return { skipped: true, recipientCount: emails.length };
     }
 
+    const subject = post.isAnnouncement
+        ? `New announcement: ${post.title}`
+        : `New blog post: ${post.title}`;
+    const html = buildPostNotificationHtml(post);
+
     const results = [];
-    for (const batch of batches) {
-        const [to, ...bcc] = batch;
+    for (const email of emails) {
         const result = await sendResendEmail({
-            to,
-            bcc,
+            to: email,
             subject,
             html
         });
         results.push(result);
     }
 
-    return { sent: true, recipientCount: emails.length, batches: results.length };
+    return { sent: true, recipientCount: emails.length, batches: results.length, mode: 'individual' };
+}
+
+async function notifySubscribers(post) {
+    const emails = await getNotificationRecipients();
+    if (emails.length === 0 || !resendApiKey) {
+        return { skipped: true, recipientCount: emails.length };
+    }
+
+    return sendPostNotifications(post, emails);
+}
+
+async function resendPostToSubscribers(post, options = {}) {
+    const recipientMode = String(options.recipientMode || 'all').toLowerCase();
+
+    if (recipientMode === 'single') {
+        const email = normalizeEmail(options.email);
+        if (!email || !email.includes('@')) {
+            const error = new Error('A valid email address is required.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (isExcludedSubscriberEmail(email)) {
+            const error = new Error('That email address is excluded from subscriber sends.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        return sendPostNotifications(post, [email]);
+    }
+
+    const emails = await getNotificationRecipients();
+    if (emails.length === 0 || !resendApiKey) {
+        return { skipped: true, recipientCount: emails.length };
+    }
+
+    return sendPostNotifications(post, emails);
+}
+
+async function sendPostToAllSubscribers(post) {
+    return resendPostToSubscribers(post, { recipientMode: 'all' });
+}
+
+async function sendPostToSingleSubscriber(post, email) {
+    return resendPostToSubscribers(post, { recipientMode: 'single', email });
 }
 
 const server = createServer(async (req, res) => {
@@ -1180,6 +1216,65 @@ const server = createServer(async (req, res) => {
             return;
         }
 
+        if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/send-all') && req.method === 'POST') {
+            await store.ensureSeeded();
+            const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/send-all', ''));
+            const post = await store.getPost(id);
+
+            if (!post) {
+                res.writeHead(404, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ error: 'Post not found' }));
+                return;
+            }
+
+            const result = await sendPostToAllSubscribers(post);
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({
+                ok: true,
+                recipientCount: result?.recipientCount || 0,
+                skipped: Boolean(result?.skipped)
+            }));
+            return;
+        }
+
+        if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/send-single') && req.method === 'POST') {
+            await store.ensureSeeded();
+            const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/send-single', ''));
+            const post = await store.getPost(id);
+
+            if (!post) {
+                res.writeHead(404, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ error: 'Post not found' }));
+                return;
+            }
+
+            const body = await parseBody(req);
+            const result = await sendPostToSingleSubscriber(post, body.email);
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({
+                ok: true,
+                recipientCount: result?.recipientCount || 0,
+                skipped: Boolean(result?.skipped)
+            }));
+            return;
+        }
+
         if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/resend') && req.method === 'POST') {
             await store.ensureSeeded();
             const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/resend', ''));
@@ -1195,7 +1290,8 @@ const server = createServer(async (req, res) => {
                 return;
             }
 
-            const result = await resendPostToSubscribers(post);
+            const body = await parseBody(req);
+            const result = await resendPostToSubscribers(post, body);
             res.writeHead(200, {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Cache-Control': 'no-store',

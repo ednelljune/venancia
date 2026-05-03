@@ -97,7 +97,7 @@ export const seedPosts = [
     },
     {
         id: 'philippines-skilled-migration-europe',
-        title: 'Philippines Skilled Migration to Europe: What Applicants Should Know',
+        title: 'Philippines Skilled Migration and Travel Opportunities: What Applicants Should Know',
         category: 'New Policy',
         tagClass: '',
         icon: 'fa-bolt',
@@ -107,20 +107,20 @@ export const seedPosts = [
         isAnnouncement: true,
         sortOrder: 0,
         content: `
-            <p>Europe continues to be an important destination for Filipino workers. According to the Philippine Statistics Authority, Europe accounted for 10.6% of all Overseas Filipino Workers in 2024, showing that the region remains a real pathway for qualified applicants.</p>
-            <h3 style="margin: 30px 0 15px;">What this means for skilled applicants</h3>
+            <p>Europe continues to be an important destination for Filipino workers, while Australia and other overseas destinations also attract applicants looking for tourism, study, and career opportunities. According to the Philippine Statistics Authority, Europe accounted for 10.6% of all Overseas Filipino Workers in 2024, showing that the region remains a real pathway for qualified applicants.</p>
+            <h3 style="margin: 30px 0 15px;">What this means for applicants</h3>
             <ul style="margin-bottom: 20px; padding-left: 20px;">
-                <li style="margin-bottom: 10px;">Healthcare, hospitality, construction, logistics, and technical roles continue to appear in European shortage lists.</li>
-                <li style="margin-bottom: 10px;">Many countries use work permits, single permits, or EU Blue Card routes depending on the role and salary level.</li>
-                <li style="margin-bottom: 10px;">Applicants should prepare contracts, qualification proofs, translations, and identity documents early.</li>
+                <li style="margin-bottom: 10px;">Healthcare, hospitality, construction, logistics, tourism, and technical roles continue to appear in overseas shortage lists.</li>
+                <li style="margin-bottom: 10px;">Many countries use work permits, single permits, visitor visas, or skill-based routes depending on the role and salary level.</li>
+                <li style="margin-bottom: 10px;">Applicants should prepare contracts, qualification proofs, translations, identity documents, and travel plans early.</li>
             </ul>
             <h3 style="margin: 30px 0 15px;">Our recommendation</h3>
-            <p>Filipino applicants should always apply through the official authorities of the destination country and check the exact occupation and salary rules before spending money on processing. Europe is open, but every pathway is country-specific.</p>
+            <p>Filipino applicants should always apply through the official authorities of the destination country and check the exact occupation, visa, and salary rules before spending money on processing. Europe is one option, but many other destinations can also be a fit depending on your goals.</p>
         `
     },
     {
         id: 'europe-skilled-worker-step-by-step',
-        title: 'Europe Skilled Worker Visa: A Step-by-Step Guide',
+        title: 'Skilled Worker Visa and Travel Pathways: A Step-by-Step Guide',
         category: 'Visa Updates',
         tagClass: 'dark',
         icon: 'fa-passport',
@@ -130,9 +130,9 @@ export const seedPosts = [
         isAnnouncement: false,
         sortOrder: 8,
         content: `
-            <p>If you want to work in Europe as a skilled worker, the process is usually simpler when you treat it as a sequence rather than a single visa application. The exact rules change by country, but the same core steps appear again and again: secure a job offer, confirm the correct permit route, prepare your documents, apply to the destination country, and complete registration after arrival.</p>
+            <p>If you want to work or travel abroad as a skilled applicant, the process is usually simpler when you treat it as a sequence rather than a single visa application. The exact rules change by destination, but the same core steps appear again and again: secure the right offer, confirm the correct permit or visa route, prepare your documents, apply to the destination country, and complete registration after arrival.</p>
             <h3 style="margin: 30px 0 15px;">Step 1: Choose the right pathway</h3>
-            <p>Europe does not use one single work visa for everyone. For highly qualified professionals, the EU Blue Card is one option. For many other workers, the Single Permit system is used. In both cases, national rules still matter, so the destination country is always the final authority.</p>
+            <p>Europe does not use one single work visa for everyone. For highly qualified professionals, the EU Blue Card is one option. For many other workers, the Single Permit system is used. In other destinations, visa categories can differ even more, so the destination country is always the final authority.</p>
             <h3 style="margin: 30px 0 15px;">Step 2: Secure a real job offer</h3>
             <p>Most skilled worker routes begin with a genuine employment offer or a binding contract. The Council notes that EU Blue Card applicants need a valid work contract or binding offer for at least six months, and the salary must meet the threshold set by the member state.</p>
             <h3 style="margin: 30px 0 15px;">Step 3: Check qualifications and salary rules</h3>
@@ -146,7 +146,7 @@ export const seedPosts = [
                 <li style="margin-bottom: 10px;">Health insurance, accommodation details, and translations if needed</li>
             </ul>
             <h3 style="margin: 30px 0 15px;">Step 5: Apply to the correct authority</h3>
-            <p>The EU does not issue a one-size-fits-all visa. You must apply to the authorities of the country you plan to move to. Depending on the pathway, you may apply from outside the EU or, in some cases, from within the EU if you already hold a valid residence permit.</p>
+            <p>The EU does not issue a one-size-fits-all visa. You must apply to the authorities of the country you plan to move to. Depending on the pathway, you may apply from outside the EU or, in some cases, from within the EU if you already hold a valid residence permit. The same principle applies to other destinations: always follow the official authority for the country you choose.</p>
             <h3 style="margin: 30px 0 15px;">Step 6: Wait for the decision</h3>
             <p>Processing times vary by country and permit type. For the EU Blue Card, applicants are notified of the decision within 90 days. The recast Single Permit rules also aim for a decision within 90 days in many cases. National procedures can still be faster or slower depending on the embassy and the labour market situation.</p>
             <h3 style="margin: 30px 0 15px;">Step 7: Travel, register, and settle in</h3>
@@ -159,7 +159,7 @@ export const seedPosts = [
                 <li style="margin-bottom: 10px;">Assuming one country’s rules apply across all of Europe</li>
             </ul>
             <h3 style="margin: 30px 0 15px;">Bottom line</h3>
-            <p>The best Europe skilled worker application is the one built around the right permit, the right employer, and the right country-specific documents. If you plan carefully and follow the official process, the pathway is much clearer than most applicants expect.</p>
+            <p>The best skilled worker application is the one built around the right permit, the right employer, and the right country-specific documents. If you plan carefully and follow the official process, the pathway is much clearer than most applicants expect.</p>
             <p><strong>Official references:</strong> European Commission work and single permit guidance, the EU Blue Card rules, and the Philippine Statistics Authority overseas worker releases.</p>
         `
     },
@@ -212,7 +212,7 @@ export const seedPosts = [
     },
     {
         id: 'nepal-skilled-migrants',
-        title: 'Europe Looks for Nepalese Skilled Migrants: Expanding Opportunities in 2026',
+        title: 'Nepalese Skilled Migrants and Tourism Opportunities in 2026',
         category: 'Work',
         icon: 'fa-briefcase',
         iconClass: '',
@@ -221,22 +221,22 @@ export const seedPosts = [
         isAnnouncement: false,
         sortOrder: 3,
         content: `
-            <p>European nations are increasingly turning their attention to Nepal as a key source of highly skilled and dedicated professionals. With a growing reputation for excellence in technical fields and healthcare, Nepalese migrants are finding more pathways than ever to build successful careers in Europe.</p>
+            <p>European nations are increasingly turning their attention to Nepal as a key source of highly skilled and dedicated professionals. At the same time, Australia and other destinations continue to welcome travelers, students, and workers seeking fresh opportunities. Nepalese applicants are finding more pathways than ever to build successful careers abroad.</p>
             <h3 style="margin: 30px 0 15px;">Key Sectors in Demand</h3>
-            <p>Currently, several European countries are actively recruiting Nepalese talent in the following sectors:</p>
+            <p>Currently, several destinations are actively recruiting Nepalese talent in the following sectors:</p>
             <ul style="margin-bottom: 20px; padding-left: 20px;">
-                <li style="margin-bottom: 10px;"><strong>Hospitality and Tourism:</strong> With the post-pandemic boom, countries like Croatia and Montenegro are seeking experienced hotel and restaurant staff.</li>
+                <li style="margin-bottom: 10px;"><strong>Hospitality and Tourism:</strong> Countries across Europe and beyond seek experienced hotel and restaurant staff.</li>
                 <li style="margin-bottom: 10px;"><strong>Construction and Engineering:</strong> Poland and the Czech Republic have a high demand for skilled tradespeople and civil engineers for major infrastructure projects.</li>
-                <li style="margin-bottom: 10px;"><strong>Healthcare:</strong> Norway and Germany are looking for nurses and healthcare assistants, offering attractive relocation packages.</li>
+                <li style="margin-bottom: 10px;"><strong>Healthcare:</strong> Norway and Germany are looking for nurses and healthcare assistants, while other destinations continue to open skilled pathways.</li>
             </ul>
             <h3 style="margin: 30px 0 15px;">Why Nepalese Migrants?</h3>
-            <p>Nepalese professionals are known for their strong work ethic, adaptability, and high level of English proficiency, making them ideal candidates for the European workforce. Many European employers are now partnering with specialized consultancies like Venancia to streamline the recruitment process from Nepal.</p>
+            <p>Nepalese professionals are known for their strong work ethic, adaptability, and high level of English proficiency, making them ideal candidates for employers and tourism partners across multiple destinations. Many international employers are now partnering with specialized consultancies like Venancia to streamline the recruitment process from Nepal.</p>
             <p><strong>Are you a skilled professional in Nepal looking to take the next step in your career? Contact Venancia Consultancy for a personalized pathway assessment.</strong></p>
         `
     },
     {
         id: 'top-countries',
-        title: 'Top 5 Countries in Europe Hiring Skilled Workers in 2026',
+        title: 'Top Destinations Hiring Skilled Workers in 2026',
         category: 'Work',
         icon: 'fa-briefcase',
         iconClass: '',
@@ -245,7 +245,7 @@ export const seedPosts = [
         isAnnouncement: false,
         sortOrder: 4,
         content: `
-            <p>Europe continues to face significant labor shortages across multiple sectors. As we head into 2026, several countries have streamlined their immigration pathways to attract international talent.</p>
+            <p>Many destinations continue to face significant labor shortages across multiple sectors. As we head into 2026, several countries have streamlined their immigration pathways to attract international talent.</p>
             <h3 style="margin: 30px 0 15px;">1. Germany</h3>
             <p>With the new Opportunity Card (Chancenkarte), Germany is making it easier than ever for non-EU professionals to enter the country to seek employment. IT specialists, engineers, and healthcare workers are in highest demand.</p>
             <h3 style="margin: 30px 0 15px;">2. Poland</h3>
@@ -316,7 +316,7 @@ export const seedPosts = [
         isAnnouncement: false,
         sortOrder: 7,
         content: `
-            <p>Visa rejections can be devastating, delaying your European dreams by months or even years. However, most rejections stem from preventable errors. Here are the most common mistakes we see.</p>
+            <p>Visa rejections can be devastating, delaying your travel or career plans by months or even years. However, most rejections stem from preventable errors. Here are the most common mistakes we see.</p>
             <h3 style="margin: 30px 0 15px;">1. Incomplete or Incorrect Documentation</h3>
             <p>Embassy officials are meticulous. Missing a single required document, submitting an expired passport, or providing documents without the necessary translations or apostilles will lead to an instant rejection. Always double-check the official embassy checklist.</p>
             <h3 style="margin: 30px 0 15px;">2. Insufficient Proof of Funds</h3>

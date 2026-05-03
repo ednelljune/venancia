@@ -48,11 +48,19 @@ const publicApiBaseUrl = process.env.PUBLIC_API_BASE_URL || '';
 const publicSiteUrl = process.env.PUBLIC_SITE_URL || 'https://venancia.com.au';
 const resendApiKey = process.env.RESEND_API_KEY || '';
 const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'Venancia Consultancy <info@venancia.com.au>';
+const assessmentAutoReplyFromEmail = process.env.ASSESSMENT_AUTO_REPLY_FROM_EMAIL || 'Venancia Consultancy Office <donotreply@venancia.com.au>';
 const publicRoot = __dirname;
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '') || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+const adminEmailAllowlist = new Set(
+    String(process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || 'admin@venancia.com.au')
+        .split(',')
+        .map((value) => normalizeEmail(value))
+        .filter(Boolean)
+);
 const useSupabase = Boolean(supabaseUrl && supabaseServiceKey);
+const supabaseAuthEnabled = Boolean(supabaseUrl && supabaseAnonKey);
 const contentCacheTtlMs = Number(process.env.CONTENT_CACHE_TTL_MS || 30000);
 const excludedSubscriberEmails = new Set([
     'donotreply@venancia.com.au'
@@ -84,6 +92,61 @@ function contentHeaders(extra = {}) {
         Authorization: `Bearer ${supabaseServiceKey}`,
         ...extra
     };
+}
+
+function extractBearerToken(req) {
+    const header = String(req.headers.authorization || '');
+    const match = header.match(/^Bearer\s+(.+)$/i);
+    return match ? match[1].trim() : '';
+}
+
+async function verifyAdminSession(req) {
+    if (!useSupabase || !supabaseAuthEnabled) {
+        return { bypassed: true };
+    }
+
+    const token = extractBearerToken(req);
+    if (!token) {
+        const error = new Error('Authentication required.');
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        const error = new Error('Authentication required.');
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const user = await response.json().catch(() => null);
+    const email = normalizeEmail(user?.email || '');
+    if (adminEmailAllowlist.size && !adminEmailAllowlist.has(email)) {
+        const error = new Error('You do not have access to this resource.');
+        error.statusCode = 403;
+        throw error;
+    }
+
+    return { user, token };
+}
+
+async function requireAdminAuth(req, res) {
+    try {
+        return await verifyAdminSession(req);
+    } catch (error) {
+        res.writeHead(error.statusCode || 401, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-store'
+        });
+        res.end(JSON.stringify({ error: error.message || 'Authentication required.' }));
+        return null;
+    }
 }
 
 function corsHeaders(origin) {
@@ -223,7 +286,7 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
-async function sendResendEmail({ to, subject, html, bcc = [] }) {
+async function sendResendEmail({ to, subject, html, bcc = [], attachments = [], from = resendFromEmail, replyTo = undefined }) {
     if (!resendApiKey) {
         return { skipped: true };
     }
@@ -235,9 +298,11 @@ async function sendResendEmail({ to, subject, html, bcc = [] }) {
             Authorization: `Bearer ${resendApiKey}`
         },
         body: JSON.stringify({
-            from: resendFromEmail,
+            from,
             to,
             bcc,
+            attachments,
+            reply_to: replyTo,
             subject,
             html
         })
@@ -269,37 +334,38 @@ async function sendSubscriptionConfirmation(subscriber) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscription Confirmed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Inter', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #F8F9FB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8F9FB; padding: 60px 20px;">
         <tr>
             <td align="center">
-                <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 720px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04); border: 1px solid #E5E7EB;">
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="padding: 40px 40px 20px;">
-                            <h2 style="margin: 0; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                                <span style="color: #FFB800;">Venancia</span> Consultancy
-                            </h2>
+                        <td align="center" style="padding: 50px 40px 30px;">
+                            <div style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; color: #111827; letter-spacing: -1px;">
+                                <span style="color: #FFB800;">Venancia</span> Consultancy Pty Ltd
+                            </div>
                         </td>
                     </tr>
                     <!-- Body -->
                     <tr>
-                        <td align="center" style="padding: 20px 40px 40px;">
-                            <div style="background-color: rgba(255, 184, 0, 0.1); width: 64px; height: 64px; border-radius: 50%; display: inline-block; margin-bottom: 24px;">
+                        <td align="center" style="padding: 0 60px 50px;">
+                            <div style="background-color: rgba(255, 184, 0, 0.08); width: 80px; height: 80px; border-radius: 50%; display: inline-block; margin-bottom: 30px;">
                                 <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
-                                    <tr><td align="center" valign="middle" style="color: #FF8A00; font-size: 32px; line-height: 1;">✓</td></tr>
+                                    <tr><td align="center" valign="middle" style="color: #FF8A00; font-size: 40px; line-height: 1;">✓</td></tr>
                                 </table>
                             </div>
-                            <h1 style="margin: 0 0 16px; color: #1A1A1A; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 700;">Thanks for Subscribing!</h1>
-                            <p style="margin: 0 0 30px; color: #333333; font-size: 16px; line-height: 1.6; max-width: 400px;">
-                                You’re now officially on the list. We'll send you our latest news, visa updates, and announcements directly to your inbox.
+                            <h1 style="margin: 0 0 16px; color: #111827; font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.2;">Welcome to the Community!</h1>
+                            <p style="margin: 0 0 40px; color: #4B5563; font-size: 18px; line-height: 1.6; max-width: 500px;">
+                                You’re now subscribed to Venancia updates. We’re excited to share the latest news, visa updates, and pathways with you.
                             </p>
                             
                             <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
                                 <tr>
-                                    <td align="center" style="border-radius: 8px; background-color: #FF8A00; background: linear-gradient(135deg, #FFB800, #FF8A00);">
-                                        <a href="${escapeHtml(publicSiteUrl.replace(/\/$/, ''))}" target="_blank" style="font-size: 16px; font-family: 'Outfit', Helvetica, Arial, sans-serif; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 16px 36px; display: inline-block; box-shadow: 0 4px 15px rgba(255, 138, 0, 0.3);">Visit Venancia</a>
+                                    <td align="center" style="border-radius: 12px; background-color: #FF8A00; background: linear-gradient(135deg, #FFB800, #FF8A00);">
+                                        <a href="${escapeHtml(publicSiteUrl.replace(/\/$/, ''))}" target="_blank" style="font-size: 18px; font-family: 'Outfit', sans-serif; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 12px; padding: 18px 48px; display: inline-block; box-shadow: 0 8px 20px rgba(255, 138, 0, 0.25);">Visit Website</a>
                                     </td>
                                 </tr>
                             </table>
@@ -307,15 +373,13 @@ async function sendSubscriptionConfirmation(subscriber) {
                     </tr>
                     <!-- Footer -->
                     <tr>
-                        <td align="center" style="padding: 30px 40px; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
-                            <p style="margin: 0 0 8px; color: #888888; font-size: 14px;">
+                        <td align="center" style="padding: 40px; background-color: #F9FAFB; border-top: 1px solid #F3F4F6;">
+                            <p style="margin: 0 0 10px; color: #6B7280; font-size: 14px; font-weight: 500;">
                                 © ${new Date().getFullYear()} Venancia Consultancy. All rights reserved.
                             </p>
-                            <p style="margin: 0; color: #aaaaaa; font-size: 12px;">
-                                You received this email because you subscribed to updates on our website.
-                            </p>
-                            <p style="margin: 8px 0 0; color: #aaaaaa; font-size: 12px;">
-                                <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FF8A00; text-decoration: none;">Unsubscribe</a>
+                            <p style="margin: 0; color: #9CA3AF; font-size: 12px; line-height: 1.5;">
+                                You received this email because you subscribed on our website.<br>
+                                <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FF8A00; text-decoration: none; font-weight: 600;">Unsubscribe from updates</a>
                             </p>
                         </td>
                     </tr>
@@ -331,6 +395,269 @@ async function sendSubscriptionConfirmation(subscriber) {
         to: email,
         subject,
         html
+    });
+}
+
+function decodeMultipartText(value = '') {
+    return Buffer.from(String(value), 'latin1').toString('utf8');
+}
+
+async function parseMultipartFormData(req) {
+    const contentType = String(req.headers['content-type'] || '');
+    const boundaryMatch = contentType.match(/boundary=([^;]+)/i);
+    if (!boundaryMatch?.[1]) {
+        throw new Error('Missing multipart boundary.');
+    }
+
+    const boundary = boundaryMatch[1].replace(/^"|"$/g, '');
+    const rawBody = await new Promise((resolveBody, rejectBody) => {
+        const chunks = [];
+        let total = 0;
+
+        req.on('data', (chunk) => {
+            const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            total += buffer.length;
+            if (total > 15 * 1024 * 1024) {
+                rejectBody(new Error('Request body too large.'));
+                req.destroy();
+                return;
+            }
+            chunks.push(buffer);
+        });
+
+        req.on('end', () => resolveBody(Buffer.concat(chunks)));
+        req.on('error', rejectBody);
+    });
+
+    const boundaryToken = `--${boundary}`;
+    const raw = rawBody.toString('latin1');
+    const segments = raw.split(boundaryToken);
+    const fields = {};
+    const files = [];
+
+    for (let segment of segments) {
+        if (!segment) continue;
+        if (segment === '--' || segment === '--\r\n') continue;
+        if (segment.startsWith('\r\n')) segment = segment.slice(2);
+        if (segment.endsWith('\r\n')) segment = segment.slice(0, -2);
+        if (!segment || segment === '--') continue;
+
+        const headerEnd = segment.indexOf('\r\n\r\n');
+        if (headerEnd === -1) continue;
+
+        const headerText = segment.slice(0, headerEnd);
+        const bodyText = segment.slice(headerEnd + 4);
+        const dispositionMatch = headerText.match(/name="([^"]+)"(?:;\s*filename="([^"]*)")?/i);
+        if (!dispositionMatch?.[1]) continue;
+
+        const fieldName = dispositionMatch[1];
+        const filename = dispositionMatch[2] ? dispositionMatch[2].trim() : '';
+        const valueBuffer = Buffer.from(bodyText, 'latin1');
+
+        if (filename) {
+            files.push({
+                fieldName,
+                filename,
+                contentType: (headerText.match(/Content-Type:\s*([^\r\n]+)/i)?.[1] || 'application/octet-stream').trim(),
+                size: valueBuffer.length,
+                buffer: valueBuffer
+            });
+        } else {
+            fields[fieldName] = valueBuffer.toString('utf8');
+        }
+    }
+
+    return { fields, files };
+}
+
+async function parseAssessmentSubmission(req) {
+    const contentType = String(req.headers['content-type'] || '');
+    const body = contentType.includes('multipart/form-data')
+        ? await parseMultipartFormData(req)
+        : { fields: await parseBody(req), files: [] };
+    const fields = body.fields || {};
+    const files = Array.isArray(body.files) ? body.files : [];
+
+    const submission = {
+        name: String(fields.name || '').trim(),
+        email: normalizeEmail(fields.email),
+        phone: String(fields.phone || '').trim(),
+        country: String(fields.country || '').trim(),
+        interest: String(fields.interest || '').trim(),
+        referred: String(fields.Referred || fields.referred || '').trim(),
+        submittedAtAu: String(fields['Submitted at (Australia/Melbourne)'] || fields.submittedAtAu || '').trim(),
+        subject: String(fields._subject || fields.subject || 'Request for Assessment').trim(),
+        cvFilename: String(files.find((file) => file.fieldName === 'attachment' || file.fieldName === 'cv')?.filename || '').trim(),
+        attachments: []
+    };
+
+    const cvFile = files.find((file) => (file.fieldName === 'attachment' || file.fieldName === 'cv') && file.buffer?.length);
+    if (cvFile) {
+        submission.attachments.push({
+            filename: cvFile.filename || 'cv',
+            content: cvFile.buffer.toString('base64')
+        });
+    }
+
+    return submission;
+}
+
+async function sendAssessmentNotificationEmail(submission) {
+    if (!resendApiKey) {
+        return { skipped: true };
+    }
+
+    const subject = `New Eligibility Assessment Request - ${String(submission?.name || 'Unknown').trim()}`;
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Eligibility Assessment</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Inter', Helvetica, Arial, sans-serif;">
+    <div style="max-width: 680px; margin: 0 auto; padding: 40px 20px;">
+        <div style="background: #ffffff; border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+            <h1 style="margin: 0 0 18px; font-family: 'Outfit', Helvetica, Arial, sans-serif; color: #1A1A1A;">New Eligibility Assessment Request</h1>
+            <table style="width: 100%; border-collapse: collapse; font-size: 15px; color: #333333;">
+                <tr><td style="padding: 8px 0; font-weight: 700;">Name</td><td style="padding: 8px 0;">${escapeHtml(submission?.name || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Email</td><td style="padding: 8px 0;">${escapeHtml(submission?.email || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Phone</td><td style="padding: 8px 0;">${escapeHtml(submission?.phone || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Country</td><td style="padding: 8px 0;">${escapeHtml(submission?.country || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Interest</td><td style="padding: 8px 0;">${escapeHtml(submission?.interest || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Referred</td><td style="padding: 8px 0;">${escapeHtml(submission?.referred || '') || 'N/A'}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">Submitted At</td><td style="padding: 8px 0;">${escapeHtml(submission?.submittedAtAu || '')}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: 700;">CV Uploaded</td><td style="padding: 8px 0;">${escapeHtml(submission?.cvFilename || 'No')}</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+
+    const attachments = Array.isArray(submission?.attachments) ? submission.attachments : [];
+
+    return sendResendEmail({
+        to: 'info@venancia.com.au',
+        subject,
+        html,
+        attachments,
+        from: assessmentAutoReplyFromEmail,
+        replyTo: submission?.email
+    });
+}
+
+async function sendAssessmentAutoReply(submission) {
+    if (!resendApiKey) {
+        return { skipped: true };
+    }
+
+    const recipientEmail = normalizeEmail(submission?.email);
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+        throw new Error('A valid applicant email address is required for the auto-reply.');
+    }
+
+    const applicantName = String(submission?.name || 'Applicant').trim();
+    const subject = 'We received your Eligibility Assessment request';
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eligibility Assessment Received</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8F9FB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F8F9FB; padding: 60px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 800px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04); border: 1px solid #E5E7EB;">
+                    <!-- Header Logo Area -->
+                    <tr>
+                        <td align="center" style="padding: 50px 40px 30px;">
+                            <div style="font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; color: #111827; letter-spacing: -1px;">
+                                <span style="color: #FFB800;">Venancia</span> Consultancy
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 0 60px 50px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 30px;">
+                                        <div style="background-color: rgba(255, 184, 0, 0.08); width: 80px; height: 80px; border-radius: 50%; display: inline-block;">
+                                            <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+                                                <tr><td align="center" valign="middle" style="color: #FF8A00; font-size: 40px; line-height: 1;">✓</td></tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-bottom: 40px;">
+                                        <h1 style="margin: 0 0 14px; color: #111827; font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.2;">Eligibility Assessment Received</h1>
+                                        <p style="margin: 0; color: #6B7280; font-size: 18px; line-height: 1.6;">Your request has been successfully logged and is now being reviewed by our specialists.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0 8px;">
+                                        <p style="margin: 0 0 18px; color: #111827; font-size: 16px; font-weight: 600;">Dear ${escapeHtml(applicantName)},</p>
+                                        <p style="margin: 0 0 18px; color: #374151; font-size: 16px; line-height: 1.7;">
+                                            Thank you for submitting your application to <strong>Venancia Consultancy Pty Ltd</strong>.
+                                        </p>
+                                        <p style="margin: 0 0 18px; color: #374151; font-size: 16px; line-height: 1.7;">
+                                            We have received your details, and our team is currently evaluating your profile for an initial eligibility assessment. This process ensures we identify the most suitable pathways for your specific goals.
+                                        </p>
+                                        <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.7;">
+                                            Our consultants carefully assess every application. You can expect a detailed update within <strong>24–48 hours</strong> regarding your next steps.
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 40px; padding-bottom: 20px;">
+                                        <p style="margin: 0 0 10px; color: #6B7280; font-size: 15px;">If you have any urgent questions, reach out at:</p>
+                                        <p style="margin: 0; color: #111827; font-size: 15px; font-weight: 600;">info@venancia.com.au</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 16px;">
+                                        <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                                            <tr>
+                                                <td align="center" style="border-radius: 10px; background-color: #FF8A00; background: linear-gradient(135deg, #FFB800, #FF8A00);">
+                                                    <a href="${escapeHtml(publicSiteUrl.replace(/\/$/, ''))}" target="_blank" style="font-size: 14px; font-family: 'Outfit', sans-serif; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px; padding: 12px 28px; display: inline-block; box-shadow: 0 6px 14px rgba(255, 138, 0, 0.22);">Visit Our Website</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding: 40px; background-color: #F9FAFB; border-top: 1px solid #F3F4F6;">
+                            <p style="margin: 0; color: #6B7280; font-size: 15px; font-weight: 500;">
+                                Kind regards,<br>
+                                <strong style="color: #111827;">Venancia Consultancy Office</strong>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `;
+
+    return sendResendEmail({
+        to: recipientEmail,
+        subject,
+        html,
+        from: assessmentAutoReplyFromEmail,
+        replyTo: 'info@venancia.com.au'
     });
 }
 
@@ -1099,18 +1426,7 @@ function serveStatic(req, res, pathname) {
     let data = readFileSync(filePath);
 
     if (contentType.includes('text/html')) {
-        const runtimeConfig = {
-            apiBaseUrl: publicApiBaseUrl || ''
-        };
-
-        if (relativePath === '/admin-login.html' || relativePath === '/admin-dashboard.html') {
-            runtimeConfig.supabaseUrl = supabaseUrl;
-            runtimeConfig.supabaseAnonKey = supabaseAnonKey;
-            runtimeConfig.authEnabled = Boolean(supabaseUrl && supabaseAnonKey);
-        }
-
-        const injectedConfig = `<script>window.VENANCIA_RUNTIME_CONFIG=${JSON.stringify(runtimeConfig)};</script>`;
-        data = Buffer.from(String(data).replace('<head>', `<head>${injectedConfig}`));
+        data = Buffer.from(String(data));
     }
 
     res.writeHead(200, {
@@ -1420,6 +1736,72 @@ const server = createServer(async (req, res) => {
             return;
         }
 
+        if (url.pathname === '/api/assessment' && req.method === 'POST') {
+            const submission = await parseAssessmentSubmission(req);
+
+            if (!submission.name || !submission.email || !submission.phone || !submission.country || !submission.interest) {
+                res.writeHead(400, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ error: 'Please complete all required fields.' }));
+                return;
+            }
+
+            const notificationEmail = await sendAssessmentNotificationEmail(submission).catch((error) => {
+                console.error('Assessment notification failed:', error);
+                return { sent: false, error: error.message || 'Notification email failed.' };
+            });
+
+            const autoReplyEmail = await sendAssessmentAutoReply(submission).catch((error) => {
+                console.error('Assessment auto-reply failed:', error);
+                return { sent: false, error: error.message || 'Auto-reply failed.' };
+            });
+
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({
+                ok: true,
+                notificationEmail,
+                autoReplyEmail
+            }));
+            return;
+        }
+
+        if (url.pathname === '/api/assessment-reply' && req.method === 'POST') {
+            const submission = await parseAssessmentSubmission(req);
+
+            if (!submission.name || !submission.email || !submission.phone || !submission.country || !submission.interest) {
+                res.writeHead(400, {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Cache-Control': 'no-store',
+                    ...corsHeaders(origin)
+                });
+                res.end(JSON.stringify({ error: 'Please complete all required fields.' }));
+                return;
+            }
+
+            const autoReplyEmail = await sendAssessmentAutoReply(submission).catch((error) => {
+                console.error('Assessment auto-reply failed:', error);
+                return { sent: false, error: error.message || 'Auto-reply failed.' };
+            });
+
+            res.writeHead(200, {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Cache-Control': 'no-store',
+                ...corsHeaders(origin)
+            });
+            res.end(JSON.stringify({
+                ok: true,
+                autoReplyEmail
+            }));
+            return;
+        }
+
         if (url.pathname === '/api/unsubscribe' && req.method === 'POST') {
             const body = await parseBody(req);
             const email = normalizeEmail(body.email);
@@ -1445,6 +1827,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname === '/api/subscribers' && req.method === 'GET') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded?.();
             const subscribers = (await store.listSubscribers()).filter((subscriber) => !isExcludedSubscriberEmail(subscriber?.email));
             res.writeHead(200, {
@@ -1457,6 +1842,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname === '/api/posts' && req.method === 'GET') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded();
             res.writeHead(200, {
                 'Content-Type': 'application/json; charset=utf-8',
@@ -1468,6 +1856,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/send-all') && req.method === 'POST') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded();
             const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/send-all', ''));
             const post = await store.getPost(id);
@@ -1497,6 +1888,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/send-single') && req.method === 'POST') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded();
             const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/send-single', ''));
             const post = await store.getPost(id);
@@ -1527,6 +1921,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname.startsWith('/api/posts/') && url.pathname.endsWith('/resend') && req.method === 'POST') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded();
             const id = decodeURIComponent(url.pathname.replace('/api/posts/', '').replace('/resend', ''));
             const post = await store.getPost(id);
@@ -1560,6 +1957,9 @@ const server = createServer(async (req, res) => {
             const id = decodeURIComponent(url.pathname.replace('/api/posts/', ''));
 
             if (req.method === 'GET') {
+                if (!(await requireAdminAuth(req, res))) {
+                    return;
+                }
                 await store.ensureSeeded();
                 const post = await store.getPost(id);
                 if (!post) {
@@ -1582,6 +1982,9 @@ const server = createServer(async (req, res) => {
             }
 
             if (req.method === 'DELETE') {
+                if (!(await requireAdminAuth(req, res))) {
+                    return;
+                }
                 await store.ensureSeeded();
                 const deleted = await store.deletePost(id);
                 if (!deleted) {
@@ -1605,6 +2008,9 @@ const server = createServer(async (req, res) => {
             }
 
             if (req.method === 'PUT') {
+                if (!(await requireAdminAuth(req, res))) {
+                    return;
+                }
                 await store.ensureSeeded();
                 const body = await parseBody(req);
                 const post = await store.upsertPost({ ...body, id }, id);
@@ -1620,6 +2026,9 @@ const server = createServer(async (req, res) => {
         }
 
         if (url.pathname === '/api/posts' && req.method === 'POST') {
+            if (!(await requireAdminAuth(req, res))) {
+                return;
+            }
             await store.ensureSeeded();
             const body = await parseBody(req);
             const post = await store.upsertPost(body);

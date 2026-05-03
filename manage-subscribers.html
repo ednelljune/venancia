@@ -506,6 +506,7 @@
             };
 
             const apiBaseUrl = resolveApiBaseUrl();
+            let auth = null;
             const subscriberTableBody = document.getElementById('subscriber-table-body');
             const subscriberCount = document.getElementById('subscriber-count');
             const visibleCount = document.getElementById('visible-count');
@@ -581,6 +582,14 @@
                 if (statusNote) {
                     statusNote.innerText = message;
                 }
+            };
+
+            const authHeaders = () => {
+                if (!auth || typeof auth.getAuthorizedHeaders !== 'function') {
+                    throw new Error('Please sign in again.');
+                }
+
+                return auth.getAuthorizedHeaders();
             };
 
             const renderSubscribers = () => {
@@ -725,7 +734,8 @@
 
                 try {
                     const response = await fetch(`${apiBaseUrl}/api/subscribers`, {
-                        cache: 'no-store'
+                        cache: 'no-store',
+                        headers: authHeaders()
                     });
 
                     if (!response.ok) {
@@ -782,7 +792,7 @@
                 const authScript = document.createElement('script');
                 authScript.src = '/supabase-auth.js';
                 authScript.onload = async () => {
-                    const auth = window.VenanciaSupabaseAuth;
+                    auth = window.VenanciaSupabaseAuth;
                     if (!auth || typeof auth.requireSession !== 'function') {
                         window.location.href = 'admin-login.html';
                         return;

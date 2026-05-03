@@ -100,17 +100,20 @@ const initVenanciaSite = () => {
     const assessmentForm = document.getElementById('assessment-form');
     const formSuccess = document.getElementById('form-success');
     const formError = document.getElementById('form-error');
+    const formErrorMessage = formError?.querySelector('p');
     const fileInput = document.getElementById('cv');
     const fileInputText = document.querySelector('.file-input-text');
     const formSubjectInput = document.getElementById('form-subject');
-    const formTarget = document.getElementById('formsubmit-target');
     const submittedAtAuInput = document.getElementById('submitted-at-au');
+    const assessmentSubmitFrame = document.getElementById('assessment-submit-frame');
     const defaultFileText = 'Choose your CV (PDF, DOC, DOCX)';
+    const defaultFormErrorMessage = formErrorMessage?.textContent || '';
 
     if (assessmentForm) {
-        let pendingIframeResponse = false;
         let submitBtn = null;
         let originalBtnText = '';
+        let waitingForFormSubmit = false;
+        let formSubmitTimeout = null;
 
         const resetSubmitButton = () => {
             if (submitBtn) {
@@ -119,19 +122,31 @@ const initVenanciaSite = () => {
             }
         };
 
-        if (formTarget) {
-            formTarget.addEventListener('load', () => {
-                if (!pendingIframeResponse) {
+        const finishSubmission = () => {
+            waitingForFormSubmit = false;
+            if (formSubmitTimeout) {
+                window.clearTimeout(formSubmitTimeout);
+                formSubmitTimeout = null;
+            }
+
+            assessmentForm.classList.add('hidden');
+            formSuccess?.classList.remove('hidden');
+            if (formError) {
+                formError.classList.add('hidden');
+                if (formErrorMessage && defaultFormErrorMessage) {
+                    formErrorMessage.textContent = defaultFormErrorMessage;
+                }
+            }
+            resetSubmitButton();
+        };
+
+        if (assessmentSubmitFrame) {
+            assessmentSubmitFrame.addEventListener('load', () => {
+                if (!waitingForFormSubmit) {
                     return;
                 }
 
-                pendingIframeResponse = false;
-                assessmentForm.classList.add('hidden');
-                formSuccess.classList.remove('hidden');
-                if (formError) {
-                    formError.classList.add('hidden');
-                }
-                resetSubmitButton();
+                finishSubmission();
             });
         }
 
@@ -189,8 +204,41 @@ const initVenanciaSite = () => {
                 }
             }
 
-            pendingIframeResponse = true;
-            assessmentForm.submit();
+            try {
+                const response = await fetch('/api/assessment-reply', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(result?.error || 'Submission failed.');
+                }
+
+                waitingForFormSubmit = true;
+                formSubmitTimeout = window.setTimeout(() => {
+                    if (!waitingForFormSubmit) {
+                        return;
+                    }
+
+                    waitingForFormSubmit = false;
+                    if (formError) {
+                        if (formErrorMessage) {
+                            formErrorMessage.textContent = 'We could not hand your submission to our mail system. Please try again.';
+                        }
+                        formError.classList.remove('hidden');
+                    }
+                    resetSubmitButton();
+                }, 12000);
+
+                assessmentForm.submit();
+            } catch (error) {
+                if (formError) {
+                    formError.classList.remove('hidden');
+                }
+                resetSubmitButton();
+            }
         });
     }
 
@@ -201,6 +249,9 @@ const initVenanciaSite = () => {
         formSuccess.classList.add('hidden');
         if (formError) {
             formError.classList.add('hidden');
+            if (formErrorMessage && defaultFormErrorMessage) {
+                formErrorMessage.textContent = defaultFormErrorMessage;
+            }
         }
         if (fileInputText) {
             fileInputText.innerText = defaultFileText;
@@ -796,9 +847,8 @@ const initVenanciaSite = () => {
     const renderBlogPage = () => {
         const announcements = getAnnouncements();
         const blogs = getVisiblePosts();
-        const mergedPosts = uniquePostsByContent(uniquePostsById(sortPosts([...announcements, ...blogs])));
-        const featuredPosts = mergedPosts.slice(0, 5);
-        const sidebarPosts = mergedPosts.slice(5);
+        const featuredPosts = uniquePostsByContent(uniquePostsById(sortPosts(blogs)));
+        const sidebarPosts = uniquePostsByContent(uniquePostsById(sortPosts(announcements)));
         let sidebarPage = 0;
         const sidebarPageSize = 6;
         const hasSidebarPagination = sidebarPosts.length > sidebarPageSize;
@@ -819,7 +869,7 @@ const initVenanciaSite = () => {
                 renderSidebarList(
                     updatesList,
                     sidebarPosts.slice(0, sidebarPageSize),
-                    sidebarPosts.length ? 'No additional updates yet.' : 'No additional updates yet.'
+                    sidebarPosts.length ? 'No announcements yet.' : 'No announcements yet.'
                 );
 
                 if (updatesPage) {
@@ -841,7 +891,7 @@ const initVenanciaSite = () => {
             const result = renderMergedSidebarList(
                 updatesList,
                 sidebarPosts,
-                'No additional updates yet.',
+                'No announcements yet.',
                 updatesPage,
                 updatesPrev,
                 updatesNext,
@@ -962,7 +1012,72 @@ const initVenanciaSite = () => {
             }
         });
     }
-};
+
+    // 12. Hero Carousel Logic
+    const heroSlides = document.querySelectorAll('.hero-slide');
+    const heroDots = document.querySelectorAll('.dot');
+    const prevBtn = document.querySelector('.hero-prev');
+    const nextBtn = document.querySelector('.hero-next');
+    let currentSlide = 0;
+    let carouselInterval;
+
+    const showSlide = (index) => {
+        heroSlides.forEach(slide => slide.classList.remove('active'));
+        heroDots.forEach(dot => dot.classList.remove('active'));
+
+        heroSlides[index].classList.add('active');
+        heroDots[index].classList.add('active');
+        currentSlide = index;
+    };
+
+    const nextSlide = () => {
+        let index = (currentSlide + 1) % heroSlides.length;
+        showSlide(index);
+    };
+
+    const prevSlide = () => {
+        let index = (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+        showSlide(index);
+    };
+
+    const startCarousel = () => {
+        carouselInterval = setInterval(nextSlide, 6000);
+    };
+
+    const stopCarousel = () => {
+        clearInterval(carouselInterval);
+    };
+
+    if (heroSlides.length > 0) {
+        // Event Listeners
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                stopCarousel();
+                nextSlide();
+                startCarousel();
+            });
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                stopCarousel();
+                prevSlide();
+                startCarousel();
+            });
+        }
+
+        heroDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                stopCarousel();
+                showSlide(index);
+                startCarousel();
+            });
+        });
+
+        // Initialize
+        startCarousel();
+    }
+    }
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initVenanciaSite, { once: true });

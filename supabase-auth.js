@@ -3,11 +3,6 @@
     const CONFIG_KEY = 'venancia_supabase_config';
     const API_BASE_KEY = 'venancia_api_base';
 
-    const legacyFallback = {
-        username: 'admin',
-        password: 'venancia2026'
-    };
-
     function readSession() {
         try {
             const raw = localStorage.getItem(SESSION_KEY);
@@ -23,6 +18,10 @@
 
     function clearSession() {
         localStorage.removeItem(SESSION_KEY);
+    }
+
+    function getAccessToken(session = readSession()) {
+        return String(session?.access_token || '').trim();
     }
 
     async function getConfig() {
@@ -109,19 +108,6 @@
     async function signInWithPassword(email, password) {
         const config = await getConfig();
         if (!config.authEnabled) {
-            if (email === legacyFallback.username && password === legacyFallback.password) {
-                const fallbackSession = {
-                    access_token: `local_${Date.now()}`,
-                    refresh_token: `local_${Date.now()}`,
-                    token_type: 'bearer',
-                    expires_in: 60 * 60 * 24,
-                    expires_at: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
-                    user: { email: legacyFallback.username, user_metadata: { legacy: true } }
-                };
-                saveSession(fallbackSession);
-                return fallbackSession;
-            }
-
             throw new Error('Supabase Auth is not configured for this environment.');
         }
 
@@ -141,6 +127,26 @@
         const session = normalizeSession(data);
         saveSession(session);
         return session;
+    }
+
+    function getAuthorizedHeaders(extraHeaders = {}, session = readSession()) {
+        const accessToken = getAccessToken(session);
+        if (!accessToken) {
+            throw new Error('Please sign in again.');
+        }
+
+        return {
+            ...extraHeaders,
+            Authorization: `Bearer ${accessToken}`
+        };
+    }
+
+    async function authFetch(url, options = {}) {
+        const headers = getAuthorizedHeaders(options.headers || {}, options.session);
+        return fetch(url, {
+            ...options,
+            headers
+        });
     }
 
     async function refreshSession(session) {
@@ -250,6 +256,9 @@
         readSession,
         saveSession,
         clearSession,
+        getAccessToken,
+        getAuthorizedHeaders,
+        authFetch,
         signInWithPassword,
         refreshSession,
         getUser,

@@ -101,6 +101,14 @@ const initVenanciaAdmin = async () => {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 
+    const authHeaders = async (extraHeaders = {}) => {
+        if (!auth || typeof auth.getAuthorizedHeaders !== 'function') {
+            throw new Error('Please sign in again.');
+        }
+
+        return auth.getAuthorizedHeaders(extraHeaders);
+    };
+
     const renderSubscriberPicker = () => {
         if (!sendSpecificPickerTableBody) {
             return;
@@ -188,7 +196,10 @@ const initVenanciaAdmin = async () => {
         renderSubscriberPicker();
 
         try {
-            const response = await fetch(`${apiBaseUrl}/api/subscribers`, { cache: 'no-store' });
+            const response = await fetch(`${apiBaseUrl}/api/subscribers`, {
+                cache: 'no-store',
+                headers: await authHeaders()
+            });
             if (!response.ok) {
                 throw new Error('Unable to load subscribers.');
             }
@@ -288,9 +299,9 @@ const initVenanciaAdmin = async () => {
             },
             {
                 name: 'Authentication',
-                value: authConfig?.authEnabled ? 'Supabase Auth' : 'Legacy fallback',
+                value: authConfig?.authEnabled ? 'Supabase Auth' : 'Not configured',
                 status: authConfig?.authEnabled ? 'Active' : 'Limited',
-                notes: authConfig?.authEnabled ? 'Email/password login enabled' : 'Development fallback only'
+                notes: authConfig?.authEnabled ? 'Email/password login enabled' : 'Set SUPABASE_ANON_KEY to enable admin login'
             },
             {
                 name: 'Content backend',
@@ -482,16 +493,23 @@ const initVenanciaAdmin = async () => {
 
         document.querySelectorAll('.delete-post').forEach((btn) => {
             btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const target = posts.find((post) => post.id === id);
-                if (!target || !confirm(`Are you sure you want to delete "${target.title}"?`)) return;
+                try {
+                    const id = btn.getAttribute('data-id');
+                    const target = posts.find((post) => post.id === id);
+                    if (!target || !confirm(`Are you sure you want to delete "${target.title}"?`)) return;
 
-                const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, { method: 'DELETE' });
-                if (!response.ok) { alert('Failed to delete the post.'); return; }
+                    const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, {
+                        method: 'DELETE',
+                        headers: await authHeaders()
+                    });
+                    if (!response.ok) { alert('Failed to delete the post.'); return; }
 
-                posts = posts.filter((post) => post.id !== id);
-                updateStats();
-                renderPostsTable();
+                    posts = posts.filter((post) => post.id !== id);
+                    updateStats();
+                    renderPostsTable();
+                } catch (error) {
+                    alert(error.message || 'Failed to delete the post.');
+                }
             });
         });
 
@@ -564,9 +582,9 @@ const initVenanciaAdmin = async () => {
         const modePath = recipientMode === 'single' ? 'send-single' : 'send-all';
         const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(pendingSendPostId)}/${modePath}`, {
             method: 'POST',
-            headers: {
+            headers: await authHeaders({
                 'Content-Type': 'application/json'
-            },
+            }),
             body: JSON.stringify({
                 recipientMode,
                 email
@@ -646,13 +664,13 @@ const initVenanciaAdmin = async () => {
         if (editId) {
             response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(editId)}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(payload)
             });
         } else {
             response = await fetch(`${apiBaseUrl}/api/posts`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await authHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(payload)
             });
         }

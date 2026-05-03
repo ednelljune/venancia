@@ -54,6 +54,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
 const useSupabase = Boolean(supabaseUrl && supabaseServiceKey);
 const contentCacheTtlMs = Number(process.env.CONTENT_CACHE_TTL_MS || 30000);
+const excludedSubscriberEmails = new Set([
+    'donotreply@venancia.com.au'
+]);
 
 let cachedContentPayload = null;
 let cachedContentAt = 0;
@@ -125,6 +128,19 @@ function isMissingSubscribersTableError(body) {
 
 function normalizeEmail(email) {
     return String(email || '').trim().toLowerCase();
+}
+
+function extractEmailAddress(value = '') {
+    const match = String(value || '').match(/<([^>]+)>/);
+    if (match?.[1]) {
+        return normalizeEmail(match[1]);
+    }
+
+    return normalizeEmail(value);
+}
+
+function isExcludedSubscriberEmail(email) {
+    return excludedSubscriberEmails.has(normalizeEmail(email));
 }
 
 function normalizeSubscriberRecord(row = {}) {
@@ -925,7 +941,10 @@ async function getContentPayload() {
 
 async function notifySubscribers(post) {
     const subscribers = await store.listSubscribers().catch(() => []);
-    const emails = subscribers.map((row) => normalizeEmail(row.email)).filter(Boolean);
+    const fromEmail = extractEmailAddress(resendFromEmail);
+    const emails = subscribers
+        .map((row) => normalizeEmail(row.email))
+        .filter((email) => email && email !== fromEmail && !isExcludedSubscriberEmail(email));
 
     if (emails.length === 0 || !resendApiKey) {
         return { skipped: true, recipientCount: emails.length };
@@ -1000,9 +1019,10 @@ async function notifySubscribers(post) {
 
     const results = [];
     for (const batch of batches) {
+        const [to, ...bcc] = batch;
         const result = await sendResendEmail({
-            to: resendFromEmail,
-            bcc: batch,
+            to,
+            bcc,
             subject,
             html
         });
@@ -1139,12 +1159,13 @@ const server = createServer(async (req, res) => {
 
         if (url.pathname === '/api/subscribers' && req.method === 'GET') {
             await store.ensureSeeded?.();
+            const subscribers = (await store.listSubscribers()).filter((subscriber) => !isExcludedSubscriberEmail(subscriber?.email));
             res.writeHead(200, {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Cache-Control': 'no-store',
                 ...corsHeaders(origin)
             });
-            res.end(JSON.stringify({ subscribers: await store.listSubscribers() }));
+            res.end(JSON.stringify({ subscribers }));
             return;
         }
 

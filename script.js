@@ -205,7 +205,7 @@ const initVenanciaSite = () => {
             }
 
             try {
-                const response = await fetch('/api/assessment-reply', {
+                const response = await fetch(`${apiBaseUrl}/api/assessment-reply`, {
                     method: 'POST',
                     body: formData
                 });

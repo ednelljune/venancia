@@ -116,14 +116,20 @@
                         <p>Be the first to know about new openings, pathway changes, and visa updates.</p>
                     </div>
                     <div class="subscribe-form-container">
-                        <form id="subscribe-form-blog" class="subscribe-form" action="https://formsubmit.co/info@venancia.com.au" method="POST" target="formsubmit-subscribe-target-blog">
-                            <input type="hidden" name="_subject" value="New Newsletter Subscription">
-                            <input type="hidden" name="_captcha" value="false">
-                            <input type="hidden" name="_template" value="table">
+                        <form id="subscribe-form-blog" class="subscribe-form">
                             <input type="email" id="subscribe-email-blog" name="email" placeholder="Your email address" required>
                             <button type="submit" class="btn btn-primary">Subscribe</button>
                         </form>
-                        <iframe id="formsubmit-subscribe-target-blog" name="formsubmit-subscribe-target-blog" class="hidden" title="Subscribe form target"></iframe>
+                        <div id="subscribe-success-blog" class="subscribe-message form-success-message hidden">
+                            <i class="fas fa-check-circle"></i>
+                            <h4>You’re subscribed!</h4>
+                            <p>We’ll keep you updated. You can unsubscribe anytime at <a href="/unsubscribe.html">this page</a>.</p>
+                        </div>
+                        <div id="subscribe-error-blog" class="subscribe-message form-success-message hidden">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <h4>Something went wrong.</h4>
+                            <p>Please try again in a moment.</p>
+                        </div>
                     </div>
                 </div>
             </div>

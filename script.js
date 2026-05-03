@@ -54,6 +54,10 @@ const initVenanciaSite = () => {
         rootMargin: '0px 0px -50px 0px'
     });
 
+    const observeRevealElements = (scope = document) => {
+        scope.querySelectorAll('[data-reveal]:not(.revealed)').forEach((el) => revealObserver.observe(el));
+    };
+
     revealElements.forEach(el => revealObserver.observe(el));
 
     // 4. FAQ Accordion
@@ -343,28 +347,13 @@ const initVenanciaSite = () => {
     const subscribeForm = document.getElementById('subscribe-form');
     const subscribeSuccess = document.getElementById('subscribe-success');
     const subscribeError = document.getElementById('subscribe-error');
-    const subscribeTarget = document.getElementById('formsubmit-subscribe-target');
+    const subscribeApiUrl = `${window.VenanciaApiBaseUrl || ''}/api/subscribe`;
 
     if (subscribeForm) {
-        let pendingSubscribeResponse = false;
         let subBtn = null;
+        const originalBtnText = subscribeForm.querySelector('button[type="submit"]')?.innerText || 'Subscribe';
 
-        if (subscribeTarget) {
-            subscribeTarget.addEventListener('load', () => {
-                if (!pendingSubscribeResponse) {
-                    return;
-                }
-                
-                pendingSubscribeResponse = false;
-                subscribeForm.classList.add('hidden');
-                subscribeSuccess.classList.remove('hidden');
-                if (subscribeError) {
-                    subscribeError.classList.add('hidden');
-                }
-            });
-        }
-
-        subscribeForm.addEventListener('submit', (e) => {
+        subscribeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             subBtn = subscribeForm.querySelector('button[type="submit"]');
@@ -377,8 +366,49 @@ const initVenanciaSite = () => {
                 subscribeError.classList.add('hidden');
             }
 
-            pendingSubscribeResponse = true;
-            subscribeForm.submit();
+            const email = document.getElementById('subscribe-email')?.value.trim();
+            try {
+                const response = await fetch(subscribeApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    if (response.status === 409 && subscribeError) {
+                        const titleEl = subscribeError.querySelector('h4');
+                        const textEl = subscribeError.querySelector('p');
+                        if (titleEl) titleEl.innerText = 'Already subscribed';
+                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, visit <a href="/unsubscribe.html">unsubscribe</a>.';
+                        subscribeError.classList.remove('hidden');
+                        if (subBtn) {
+                            subBtn.innerText = originalBtnText;
+                            subBtn.disabled = false;
+                        }
+                        return;
+                    }
+                    throw new Error(data.error || 'Unable to subscribe right now.');
+                }
+
+                subscribeForm.classList.add('hidden');
+                if (subscribeSuccess) {
+                    subscribeSuccess.classList.remove('hidden');
+                    setTimeout(() => {
+                        subscribeSuccess.classList.add('hidden');
+                    }, 5000);
+                }
+            } catch (error) {
+                if (subscribeError) {
+                    subscribeError.classList.remove('hidden');
+                }
+                if (subBtn) {
+                    subBtn.innerText = originalBtnText;
+                    subBtn.disabled = false;
+                }
+            }
         });
     }
 
@@ -597,11 +627,13 @@ const initVenanciaSite = () => {
         const blogGrid = document.getElementById('blog-grid');
         renderAnnouncementCards(announcementsGrid);
         renderBlogCards(blogGrid);
+        observeRevealElements();
     };
 
     const renderContentPages = () => {
         if (window.location.pathname.includes('article.html') || window.location.href.includes('article.html')) {
             renderArticlePage();
+            observeRevealElements();
         }
 
         if (window.location.pathname.includes('blog.html') || window.location.href.includes('blog.html')) {
@@ -620,28 +652,13 @@ const initVenanciaSite = () => {
     const subscribeFormBlog = document.getElementById('subscribe-form-blog');
     const subscribeSuccessBlog = document.getElementById('subscribe-success-blog');
     const subscribeErrorBlog = document.getElementById('subscribe-error-blog');
-    const subscribeTargetBlog = document.getElementById('formsubmit-subscribe-target-blog');
+    const subscribeApiUrlBlog = `${window.VenanciaApiBaseUrl || ''}/api/subscribe`;
 
     if (subscribeFormBlog) {
-        let pendingSubscribeResponseBlog = false;
         let subBtnBlog = null;
+        const originalBtnTextBlog = subscribeFormBlog.querySelector('button[type="submit"]')?.innerText || 'Subscribe';
 
-        if (subscribeTargetBlog) {
-            subscribeTargetBlog.addEventListener('load', () => {
-                if (!pendingSubscribeResponseBlog) {
-                    return;
-                }
-                
-                pendingSubscribeResponseBlog = false;
-                subscribeFormBlog.classList.add('hidden');
-                subscribeSuccessBlog.classList.remove('hidden');
-                if (subscribeErrorBlog) {
-                    subscribeErrorBlog.classList.add('hidden');
-                }
-            });
-        }
-
-        subscribeFormBlog.addEventListener('submit', (e) => {
+        subscribeFormBlog.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             subBtnBlog = subscribeFormBlog.querySelector('button[type="submit"]');
@@ -654,8 +671,49 @@ const initVenanciaSite = () => {
                 subscribeErrorBlog.classList.add('hidden');
             }
 
-            pendingSubscribeResponseBlog = true;
-            subscribeFormBlog.submit();
+            const email = document.getElementById('subscribe-email-blog')?.value.trim();
+            try {
+                const response = await fetch(subscribeApiUrlBlog, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    if (response.status === 409 && subscribeErrorBlog) {
+                        const titleEl = subscribeErrorBlog.querySelector('h4');
+                        const textEl = subscribeErrorBlog.querySelector('p');
+                        if (titleEl) titleEl.innerText = 'Already subscribed';
+                        if (textEl) textEl.innerHTML = 'This email is already on the list. If you want to stop updates, visit <a href="/unsubscribe.html">unsubscribe</a>.';
+                        subscribeErrorBlog.classList.remove('hidden');
+                        if (subBtnBlog) {
+                            subBtnBlog.innerText = originalBtnTextBlog;
+                            subBtnBlog.disabled = false;
+                        }
+                        return;
+                    }
+                    throw new Error(data.error || 'Unable to subscribe right now.');
+                }
+
+                subscribeFormBlog.classList.add('hidden');
+                if (subscribeSuccessBlog) {
+                    subscribeSuccessBlog.classList.remove('hidden');
+                    setTimeout(() => {
+                        subscribeSuccessBlog.classList.add('hidden');
+                    }, 5000);
+                }
+            } catch (error) {
+                if (subscribeErrorBlog) {
+                    subscribeErrorBlog.classList.remove('hidden');
+                }
+                if (subBtnBlog) {
+                    subBtnBlog.innerText = originalBtnTextBlog;
+                    subBtnBlog.disabled = false;
+                }
+            }
         });
     }
 };

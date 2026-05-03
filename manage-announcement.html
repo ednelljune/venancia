@@ -241,6 +241,12 @@
             height: 150px;
         }
 
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         @media (max-width: 992px) {
             .sidebar { width: 80px; }
             .sidebar-brand span, .nav-item span { display: none; }
@@ -332,12 +338,13 @@
                 </div>
                 <div class="form-group">
                     <label for="post-date-input">Date</label>
-                    <input type="text" id="post-date-input" required>
+                    <input type="date" id="post-date-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="post-id-input">URL Slug (Post ID)</label>
-                    <input type="text" id="post-id-input" required>
+                    <label for="post-read-time-input">Read Time</label>
+                    <input type="text" id="post-read-time-input" required placeholder="e.g. 2 min read">
                 </div>
+                <p style="margin: 10px 0 0; font-size: 0.9rem; color: var(--dark-grey); opacity: 0.75;">Post ID is generated automatically when you save.</p>
                 <div class="form-group" style="display: none;">
                     <input type="checkbox" id="post-announcement-input" checked>
                     <label for="post-announcement-input">Announcement</label>
@@ -346,7 +353,10 @@
                     <label for="post-content-input">Content (HTML)</label>
                     <textarea id="post-content-input" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Save Announcement</button>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save Announcement</button>
+                    <button type="button" id="resend-post-btn" class="btn btn-secondary" style="display:none;">Resend to Subscribers</button>
+                </div>
             </form>
         </div>
     </div>

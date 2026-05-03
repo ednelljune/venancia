@@ -37,17 +37,64 @@ const initVenanciaAdmin = async () => {
     const tableHead = document.getElementById('table-head');
     const modalTitle = document.getElementById('modal-title');
     const editIdInput = document.getElementById('edit-id');
-    const postIdInput = document.getElementById('post-id-input');
     const postTitleInput = document.getElementById('post-title-input');
     const postCategoryInput = document.getElementById('post-category-input');
     const postReadTimeInput = document.getElementById('post-read-time-input');
     const postDateInput = document.getElementById('post-date-input');
     const postContentInput = document.getElementById('post-content-input');
     const postAnnouncementInput = document.getElementById('post-announcement-input');
+    const resendPostBtn = document.getElementById('resend-post-btn');
     const exportTextarea = document.getElementById('export-textarea');
 
     const closeModalButtons = document.querySelectorAll('.close-modal');
     const tabLinks = document.querySelectorAll('.nav-item[data-tab]');
+
+    const setInputValue = (input, value) => {
+        if (input) {
+            input.value = value ?? '';
+        }
+    };
+
+    const getInputValue = (input, fallback = '') => {
+        return input ? String(input.value || '').trim() : fallback;
+    };
+
+    const toDateInputValue = (value) => {
+        if (!value) {
+            return '';
+        }
+
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return value;
+        }
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return '';
+        }
+
+        return parsed.toISOString().slice(0, 10);
+    };
+
+    const toDisplayDateValue = (value) => {
+        if (!value) {
+            return '';
+        }
+
+        const parsed = /^\d{4}-\d{2}-\d{2}$/.test(value)
+            ? new Date(`${value}T00:00:00`)
+            : new Date(value);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        }).format(parsed);
+    };
 
     const escapeHtml = (value) => String(value)
         .replace(/&/g, '&amp;')
@@ -131,16 +178,22 @@ const initVenanciaAdmin = async () => {
     };
 
     const updateStats = () => {
-        statPostsCount.innerText = posts.filter((post) => !post.isAnnouncement).length;
-        statAnnounceCount.innerText = posts.filter((post) => post.isAnnouncement).length;
+        if (statPostsCount) {
+            statPostsCount.innerText = posts.filter((post) => !post.isAnnouncement).length;
+        }
+
+        if (statAnnounceCount) {
+            statAnnounceCount.innerText = posts.filter((post) => post.isAnnouncement).length;
+        }
     };
 
     const syncTabUI = () => {
         if (isAnnouncementTab()) {
-            tabTitle.innerText = 'Announcement Manager';
-            tabSubtitle.innerText = 'Create and maintain featured announcements';
+            if (tabTitle) tabTitle.innerText = 'Announcement Manager';
+            if (tabSubtitle) tabSubtitle.innerText = 'Create and maintain featured announcements';
             if (tableTitle) tableTitle.innerText = 'Featured Announcements';
             if (addPostBtn) {
+                addPostBtn.style.display = '';
                 addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Announcement';
                 addPostBtn.disabled = false;
             }
@@ -157,10 +210,11 @@ const initVenanciaAdmin = async () => {
         }
 
         if (isBlogTab()) {
-            tabTitle.innerText = 'Blog Manager';
-            tabSubtitle.innerText = 'Create and maintain blog posts';
+            if (tabTitle) tabTitle.innerText = 'Blog Manager';
+            if (tabSubtitle) tabSubtitle.innerText = 'Create and maintain blog posts';
             if (tableTitle) tableTitle.innerText = 'Blog Posts';
             if (addPostBtn) {
+                addPostBtn.style.display = '';
                 addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Post';
                 addPostBtn.disabled = false;
             }
@@ -176,12 +230,11 @@ const initVenanciaAdmin = async () => {
             return;
         }
 
-        tabTitle.innerText = 'Dashboard Overview';
-        tabSubtitle.innerText = 'Welcome back, Admin';
+        if (tabTitle) tabTitle.innerText = 'Dashboard Overview';
+        if (tabSubtitle) tabSubtitle.innerText = 'Welcome back, Admin';
         if (tableTitle) tableTitle.innerText = 'Recent Activity';
         if (addPostBtn) {
-            addPostBtn.innerHTML = '<i class="fas fa-plus"></i> New Entry';
-            addPostBtn.disabled = false;
+            addPostBtn.style.display = 'none';
         }
         if (tableHead) {
             tableHead.innerHTML = `
@@ -255,6 +308,7 @@ const initVenanciaAdmin = async () => {
             const readTime = post.readTime || '';
             const actionButtons = `
                 <button class="btn-icon edit-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-edit"></i></button>
+                <button class="btn-icon resend-post" data-id="${escapeHtml(post.id)}" title="Resend to subscribers"><i class="fas fa-paper-plane"></i></button>
                 <button class="btn-icon delete delete-post" data-id="${escapeHtml(post.id)}"><i class="fas fa-trash-alt"></i></button>
             `;
 
@@ -294,6 +348,36 @@ const initVenanciaAdmin = async () => {
                 renderPostsTable();
             });
         });
+
+        document.querySelectorAll('.resend-post').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const target = posts.find((post) => post.id === id);
+                if (!target || !confirm(`Resend "${target.title}" to all subscribers?`)) return;
+
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}/resend`, {
+                        method: 'POST'
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        throw new Error(data.error || 'Failed to resend the post.');
+                    }
+
+                    alert('The post was resent to subscribers.');
+                } catch (error) {
+                    alert(error.message || 'Failed to resend the post.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            });
+        });
     };
 
     const openEditModal = (id) => {
@@ -304,13 +388,43 @@ const initVenanciaAdmin = async () => {
 
         modalTitle.innerText = isAnnouncementTab() || post.isAnnouncement ? 'Edit Announcement' : 'Edit Blog Post';
         editIdInput.value = id;
-        postIdInput.value = id;
-        postTitleInput.value = post.title;
-        postCategoryInput.value = post.category;
-        postReadTimeInput.value = post.readTime;
-        postDateInput.value = post.date;
-        postContentInput.value = post.content;
-        postAnnouncementInput.checked = Boolean(post.isAnnouncement);
+        setInputValue(postTitleInput, post.title);
+        setInputValue(postCategoryInput, post.category);
+        setInputValue(postReadTimeInput, post.readTime);
+        setInputValue(postDateInput, toDateInputValue(post.date));
+        setInputValue(postContentInput, post.content);
+        if (postAnnouncementInput) {
+            postAnnouncementInput.checked = Boolean(post.isAnnouncement);
+        }
+        if (resendPostBtn) {
+            resendPostBtn.style.display = 'inline-flex';
+            resendPostBtn.onclick = async () => {
+                const currentId = editIdInput.value.trim();
+                if (!currentId) return;
+
+                const originalText = resendPostBtn.innerText;
+                resendPostBtn.disabled = true;
+                resendPostBtn.innerText = 'Resending...';
+
+                try {
+                    const response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(currentId)}/resend`, {
+                        method: 'POST'
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        throw new Error(data.error || 'Failed to resend the post.');
+                    }
+
+                    alert('The post was resent to subscribers.');
+                } catch (error) {
+                    alert(error.message || 'Failed to resend the post.');
+                } finally {
+                    resendPostBtn.disabled = false;
+                    resendPostBtn.innerText = originalText;
+                }
+            };
+        }
         postModal.style.display = 'flex';
     };
 
@@ -318,32 +432,36 @@ const initVenanciaAdmin = async () => {
         modalTitle.innerText = isAnnouncementTab() ? 'Create New Announcement' : 'Create New Blog Post';
         postForm.reset();
         editIdInput.value = '';
-        postAnnouncementInput.checked = isAnnouncementTab();
+        if (postAnnouncementInput) {
+            postAnnouncementInput.checked = isAnnouncementTab();
+        }
+        if (resendPostBtn) {
+            resendPostBtn.style.display = 'none';
+            resendPostBtn.disabled = false;
+            resendPostBtn.onclick = null;
+            resendPostBtn.innerText = 'Resend to Subscribers';
+        }
         postModal.style.display = 'flex';
     };
 
     const savePost = async () => {
-        const id = postIdInput.value.trim();
         const editId = editIdInput.value.trim();
         const payload = {
-            id,
-            title: postTitleInput.value.trim(),
-            category: postCategoryInput.value,
-            readTime: postReadTimeInput.value.trim(),
-            date: postDateInput.value.trim(),
-            content: postContentInput.value,
-            isAnnouncement: postAnnouncementInput.checked
+            title: getInputValue(postTitleInput),
+            category: getInputValue(postCategoryInput),
+            readTime: getInputValue(postReadTimeInput, isAnnouncementTab() ? '2 min read' : ''),
+            date: toDisplayDateValue(getInputValue(postDateInput)),
+            content: postContentInput ? postContentInput.value : '',
+            isAnnouncement: Boolean(postAnnouncementInput?.checked)
         };
 
+        if (!payload.readTime) {
+            throw new Error('Read time is required.');
+        }
+
         let response;
-        if (editId && editId !== id) {
-            response = await fetch(`${apiBaseUrl}/api/posts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } else if (editId) {
-            response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(id)}`, {
+        if (editId) {
+            response = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(editId)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -364,22 +482,18 @@ const initVenanciaAdmin = async () => {
         const result = await response.json();
         const savedPost = result.post;
 
-        if (editId && editId !== id) {
-            const deleteResponse = await fetch(`${apiBaseUrl}/api/posts/${encodeURIComponent(editId)}`, {
-                method: 'DELETE'
-            });
-
-            if (!deleteResponse.ok) {
-                throw new Error('The new post was saved, but the old slug could not be removed.');
-            }
-        }
-
         posts = posts.filter((post) => post.id !== editId && post.id !== savedPost.id);
         posts.push(savedPost);
         posts = sortPosts(posts);
         updateStats();
         renderPostsTable();
         postModal.style.display = 'none';
+        if (resendPostBtn) {
+            resendPostBtn.style.display = 'none';
+            resendPostBtn.disabled = false;
+            resendPostBtn.onclick = null;
+            resendPostBtn.innerText = 'Resend to Subscribers';
+        }
     };
 
     tabLinks.forEach((link) => {
@@ -408,40 +522,56 @@ const initVenanciaAdmin = async () => {
         btn.addEventListener('click', () => {
             postModal.style.display = 'none';
             exportModal.style.display = 'none';
+            if (resendPostBtn) {
+                resendPostBtn.style.display = 'none';
+                resendPostBtn.disabled = false;
+                resendPostBtn.onclick = null;
+                resendPostBtn.innerText = 'Resend to Subscribers';
+            }
         });
     });
 
-    postForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+    if (postForm) {
+        postForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-        try {
-            await savePost();
-        } catch (error) {
-            alert(error.message || 'Unable to save the post.');
-        }
-    });
+            try {
+                await savePost();
+            } catch (error) {
+                alert(error.message || 'Unable to save the post.');
+            }
+        });
+    }
 
-    logoutBtn.addEventListener('click', async () => {
-        await auth.signOut().catch(() => null);
-        window.location.href = 'admin-login.html';
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await auth.signOut().catch(() => null);
+            window.location.href = 'admin-login.html';
+        });
+    }
 
-    document.getElementById('export-btn').addEventListener('click', () => {
-        const exportStr = `window.VENANCIA_CONTENT = ${JSON.stringify({ posts }, null, 4)};`;
-        exportTextarea.value = exportStr;
-        exportModal.style.display = 'flex';
-    });
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn && exportTextarea && exportModal) {
+        exportBtn.addEventListener('click', () => {
+            const exportStr = `window.VENANCIA_CONTENT = ${JSON.stringify({ posts }, null, 4)};`;
+            exportTextarea.value = exportStr;
+            exportModal.style.display = 'flex';
+        });
+    }
 
-    document.getElementById('copy-export-btn').addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(exportTextarea.value);
-            alert('Configuration copied to clipboard!');
-        } catch (error) {
-            exportTextarea.select();
-            document.execCommand('copy');
-            alert('Configuration copied to clipboard!');
-        }
-    });
+    const copyExportBtn = document.getElementById('copy-export-btn');
+    if (copyExportBtn && exportTextarea) {
+        copyExportBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(exportTextarea.value);
+                alert('Configuration copied to clipboard!');
+            } catch (error) {
+                exportTextarea.select();
+                document.execCommand('copy');
+                alert('Configuration copied to clipboard!');
+            }
+        });
+    }
 
     updateStats();
     renderPostsTable();

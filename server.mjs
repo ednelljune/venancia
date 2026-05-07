@@ -48,6 +48,7 @@ const publicApiBaseUrl = process.env.PUBLIC_API_BASE_URL || '';
 const publicSiteUrl = process.env.PUBLIC_SITE_URL || 'https://venancia.com.au';
 const resendApiKey = process.env.RESEND_API_KEY || '';
 const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'Venancia Consultancy <info@venancia.com.au>';
+const resendMinIntervalMs = Number(process.env.RESEND_MIN_INTERVAL_MS || 650);
 const assessmentAutoReplyFromEmail = process.env.ASSESSMENT_AUTO_REPLY_FROM_EMAIL || 'Venancia Consultancy Office <donotreply@venancia.com.au>';
 const publicRoot = __dirname;
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, '') || '';
@@ -68,6 +69,8 @@ const excludedSubscriberEmails = new Set([
 
 let cachedContentPayload = null;
 let cachedContentAt = 0;
+let resendQueue = Promise.resolve();
+let resendNextAvailableAt = 0;
 
 const mimeTypes = {
     '.html': 'text/html; charset=utf-8',
@@ -286,34 +289,85 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+}
+
+function parseRetryAfterMs(response) {
+    const retryAfter = String(response?.headers?.get?.('retry-after') || '').trim();
+    if (!retryAfter) {
+        return 0;
+    }
+
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds) && seconds > 0) {
+        return Math.ceil(seconds * 1000);
+    }
+
+    const resetAt = Date.parse(retryAfter);
+    if (!Number.isNaN(resetAt)) {
+        return Math.max(0, resetAt - Date.now());
+    }
+
+    return 0;
+}
+
+async function runResendRequest(requestFn) {
+    const run = resendQueue.then(async () => {
+        const waitMs = Math.max(0, resendNextAvailableAt - Date.now());
+        if (waitMs > 0) {
+            await delay(waitMs);
+        }
+
+        resendNextAvailableAt = Date.now() + resendMinIntervalMs;
+        return requestFn();
+    });
+
+    resendQueue = run.catch(() => {});
+    return run;
+}
+
 async function sendResendEmail({ to, subject, html, bcc = [], attachments = [], from = resendFromEmail, replyTo = undefined }) {
     if (!resendApiKey) {
         return { skipped: true };
     }
 
-    const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${resendApiKey}`
-        },
-        body: JSON.stringify({
-            from,
-            to,
-            bcc,
-            attachments,
-            reply_to: replyTo,
-            subject,
-            html
-        })
+    return runResendRequest(async () => {
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            const response = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${resendApiKey}`
+                },
+                body: JSON.stringify({
+                    from,
+                    to,
+                    bcc,
+                    attachments,
+                    reply_to: replyTo,
+                    subject,
+                    html
+                })
+            });
+
+            if (response.ok) {
+                return response.json();
+            }
+
+            const body = await response.text();
+            if (response.status !== 429 || attempt === 2) {
+                throw new Error(`Resend send failed: ${response.status} ${body}`);
+            }
+
+            const retryAfterMs = parseRetryAfterMs(response);
+            const backoffMs = retryAfterMs || Math.min(2000, resendMinIntervalMs * (attempt + 2));
+            await delay(backoffMs);
+            resendNextAvailableAt = Math.max(resendNextAvailableAt, Date.now() + backoffMs);
+        }
+
+        throw new Error('Resend send failed: exhausted retries.');
     });
-
-    if (!response.ok) {
-        const body = await response.text();
-        throw new Error(`Resend send failed: ${response.status} ${body}`);
-    }
-
-    return response.json();
 }
 
 async function sendSubscriptionConfirmation(subscriber) {
@@ -484,9 +538,20 @@ async function parseAssessmentSubmission(req) {
         phone: String(fields.phone || '').trim(),
         country: String(fields.country || '').trim(),
         interest: String(fields.interest || '').trim(),
+        assessmentType: String(fields.assessmentType || fields['assessment-type'] || '').trim().toLowerCase(),
         referred: String(fields.Referred || fields.referred || '').trim(),
         submittedAtAu: String(fields['Submitted at (Australia/Melbourne)'] || fields.submittedAtAu || '').trim(),
         subject: String(fields._subject || fields.subject || 'Request for Assessment').trim(),
+        destinationCountry: String(fields.destinationCountry || fields['destination-country'] || '').trim(),
+        travelPurpose: String(fields.travelPurpose || fields['travel-purpose'] || '').trim(),
+        intendedTravelDate: String(fields.intendedTravelDate || fields['intended-travel-date'] || '').trim(),
+        travelDuration: String(fields.travelDuration || fields['travel-duration'] || '').trim(),
+        passportStatus: String(fields.passportStatus || fields['passport-status'] || '').trim(),
+        travelHistory: String(fields.travelHistory || fields['travel-history'] || '').trim(),
+        visaRefusalHistory: String(fields.visaRefusalHistory || fields['visa-refusal-history'] || '').trim(),
+        travelCompanions: String(fields.travelCompanions || fields['travel-companions'] || '').trim(),
+        fundingStatus: String(fields.fundingStatus || fields['funding-status'] || '').trim(),
+        notes: String(fields.notes || fields['additional-notes'] || fields.message || '').trim(),
         cvFilename: String(files.find((file) => file.fieldName === 'attachment' || file.fieldName === 'cv')?.filename || '').trim(),
         attachments: []
     };
@@ -502,12 +567,40 @@ async function parseAssessmentSubmission(req) {
     return submission;
 }
 
+function buildAssessmentDetailRows(submission) {
+    const detailRows = [
+        ['Destination Country', submission?.destinationCountry || ''],
+        ['Travel Purpose', submission?.travelPurpose || ''],
+        ['Intended Travel Date', submission?.intendedTravelDate || ''],
+        ['Travel Duration', submission?.travelDuration || ''],
+        ['Passport Status', submission?.passportStatus || ''],
+        ['Travel History', submission?.travelHistory || ''],
+        ['Visa Refusal History', submission?.visaRefusalHistory || ''],
+        ['Travel Companions', submission?.travelCompanions || ''],
+        ['Funding Status', submission?.fundingStatus || ''],
+        ['Notes', submission?.notes || '']
+    ];
+
+    return detailRows
+        .filter(([, value]) => String(value || '').trim())
+        .map(([label, value]) => `<tr><td style="padding: 8px 0; font-weight: 700;">${escapeHtml(label)}</td><td style="padding: 8px 0;">${escapeHtml(value)}</td></tr>`)
+        .join('');
+}
+
+function isTourismAssessment(submission) {
+    return String(submission?.assessmentType || '').trim().toLowerCase() === 'tourism'
+        || String(submission?.interest || '').trim().toLowerCase() === 'tourist visa';
+}
+
 async function sendAssessmentNotificationEmail(submission) {
     if (!resendApiKey) {
         return { skipped: true };
     }
 
-    const subject = `New Eligibility Assessment Request - ${String(submission?.name || 'Unknown').trim()}`;
+    const subject = isTourismAssessment(submission)
+        ? `New Tourism Assessment Request - ${String(submission?.name || 'Unknown').trim()}`
+        : `New Eligibility Assessment Request - ${String(submission?.name || 'Unknown').trim()}`;
+    const tourismRows = buildAssessmentDetailRows(submission);
     const html = `
 <!DOCTYPE html>
 <html>
@@ -529,6 +622,7 @@ async function sendAssessmentNotificationEmail(submission) {
                 <tr><td style="padding: 8px 0; font-weight: 700;">Referred</td><td style="padding: 8px 0;">${escapeHtml(submission?.referred || '') || 'N/A'}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: 700;">Submitted At</td><td style="padding: 8px 0;">${escapeHtml(submission?.submittedAtAu || '')}</td></tr>
                 <tr><td style="padding: 8px 0; font-weight: 700;">CV Uploaded</td><td style="padding: 8px 0;">${escapeHtml(submission?.cvFilename || 'No')}</td></tr>
+                ${tourismRows ? `<tr><td colspan="2" style="padding: 16px 0 8px; font-weight: 700; color: #111827;">Tourism Details</td></tr>${tourismRows}` : ''}
             </table>
         </div>
     </div>
@@ -559,14 +653,18 @@ async function sendAssessmentAutoReply(submission) {
     }
 
     const applicantName = String(submission?.name || 'Applicant').trim();
-    const subject = 'We received your Eligibility Assessment request';
+    const assessmentLabel = isTourismAssessment(submission) ? 'tourism assessment' : 'eligibility assessment';
+    const subject = isTourismAssessment(submission)
+        ? 'We received your Tourism Assessment request'
+        : 'We received your Eligibility Assessment request';
+    const emailTitle = isTourismAssessment(submission) ? 'Tourism Assessment Received' : 'Eligibility Assessment Received';
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eligibility Assessment Received</title>
+    <title>${emailTitle}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin: 0; padding: 0; background-color: #F8F9FB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
@@ -597,7 +695,7 @@ async function sendAssessmentAutoReply(submission) {
                                 </tr>
                                 <tr>
                                     <td align="center" style="padding-bottom: 40px;">
-                                        <h1 style="margin: 0 0 14px; color: #111827; font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.2;">Eligibility Assessment Received</h1>
+                                        <h1 style="margin: 0 0 14px; color: #111827; font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; line-height: 1.2;">${emailTitle}</h1>
                                         <p style="margin: 0; color: #6B7280; font-size: 18px; line-height: 1.6;">Your request has been successfully logged and is now being reviewed by our specialists.</p>
                                     </td>
                                 </tr>
@@ -608,8 +706,9 @@ async function sendAssessmentAutoReply(submission) {
                                             Thank you for submitting your application to <strong>Venancia Consultancy Pty Ltd</strong>.
                                         </p>
                                         <p style="margin: 0 0 18px; color: #374151; font-size: 16px; line-height: 1.7;">
-                                            We have received your details, and our team is currently evaluating your profile for an initial eligibility assessment. This process ensures we identify the most suitable pathways for your specific goals.
+                                            We have received your details, and our team is currently evaluating your profile for an initial ${assessmentLabel}. This process ensures we identify the most suitable pathways for your specific goals.
                                         </p>
+                                        ${isTourismAssessment(submission) ? '<p style="margin: 0 0 18px; color: #374151; font-size: 16px; line-height: 1.7;">We will review your destination, travel timing, and supporting details so we can guide your tourism pathway more accurately.</p>' : ''}
                                         <p style="margin: 0; color: #374151; font-size: 16px; line-height: 1.7;">
                                             Our consultants carefully assess every application. You can expect a detailed update within <strong>24–48 hours</strong> regarding your next steps.
                                         </p>
@@ -711,6 +810,24 @@ function rowToPost(row) {
     };
 }
 
+function sortPostsLatestFirst(list = []) {
+    return [...list].sort((a, b) => {
+        const aDate = Date.parse(a?.createdAt || a?.updatedAt || a?.date || '');
+        const bDate = Date.parse(b?.createdAt || b?.updatedAt || b?.date || '');
+
+        if (!Number.isNaN(aDate) && !Number.isNaN(bDate) && aDate !== bDate) {
+            return bDate - aDate;
+        }
+
+        const sortDelta = (b?.sortOrder || 0) - (a?.sortOrder || 0);
+        if (sortDelta !== 0) {
+            return sortDelta;
+        }
+
+        return String(a?.title || '').localeCompare(String(b?.title || ''));
+    });
+}
+
 function inferTagClass(category) {
     if (category === 'Student') return 'gold';
     if (category === 'Visa Updates') return 'dark';
@@ -781,7 +898,7 @@ function localSeedStore() {
             return;
         },
         async listPosts() {
-            return allPosts();
+            return sortPostsLatestFirst(allPosts());
         },
         async getPost(id) {
             return byId.get(id) || null;
@@ -944,7 +1061,7 @@ function supabaseStore() {
             }
 
             const rows = await response.json();
-            return rows.map(rowToPost);
+            return sortPostsLatestFirst(rows.map(rowToPost).filter(Boolean));
         },
         async getPost(id) {
             const response = await supabaseRequest(`/posts?select=*&id=eq.${encodeURIComponent(id)}`, {
@@ -1503,7 +1620,7 @@ async function getNotificationRecipients() {
     return [...activeEmails];
 }
 
-function buildPostNotificationHtml(post) {
+function buildPostNotificationHtml(post, unsubscribeUrl = buildUnsubscribeUrl()) {
     return `
 <!DOCTYPE html>
 <html>
@@ -1547,7 +1664,7 @@ function buildPostNotificationHtml(post) {
                                 You received this email because you subscribed to updates on our website.
                             </p>
                             <p style="margin: 8px 0 0; color: #aaaaaa; font-size: 12px;">
-                                <a href="${escapeHtml(buildUnsubscribeUrl())}" style="color: #FF8A00; text-decoration: none;">Unsubscribe</a>
+                                <a href="${escapeHtml(unsubscribeUrl)}" style="color: #FF8A00; text-decoration: none;">Unsubscribe</a>
                             </p>
                         </td>
                     </tr>
@@ -1560,27 +1677,42 @@ function buildPostNotificationHtml(post) {
     `;
 }
 
-async function sendPostNotifications(post, emails) {
+async function sendPostNotifications(post, recipients) {
     if (!resendApiKey) {
-        return { skipped: true, recipientCount: emails.length };
+        return { skipped: true, recipientCount: recipients.length };
     }
 
     const subject = post.isAnnouncement
         ? `New announcement: ${post.title}`
         : `New blog post: ${post.title}`;
-    const html = buildPostNotificationHtml(post);
 
+    const normalizedRecipients = recipients
+        .map((recipient) => {
+            const email = normalizeEmail(typeof recipient === 'string' ? recipient : recipient?.email);
+            if (!email) {
+                return null;
+            }
+
+            return {
+                email,
+                unsubscribeUrl: recipient?.unsubscribeToken
+                    ? buildUnsubscribeUrl(recipient.unsubscribeToken)
+                    : buildUnsubscribeUrl(email)
+            };
+        })
+        .filter(Boolean);
     const results = [];
-    for (const email of emails) {
+
+    for (const recipient of normalizedRecipients) {
         const result = await sendResendEmail({
-            to: email,
+            to: recipient.email,
             subject,
-            html
+            html: buildPostNotificationHtml(post, recipient.unsubscribeUrl)
         });
         results.push(result);
     }
 
-    return { sent: true, recipientCount: emails.length, batches: results.length, mode: 'individual' };
+    return { sent: true, recipientCount: normalizedRecipients.length, batches: results.length, mode: 'individual' };
 }
 
 async function notifySubscribers(post) {

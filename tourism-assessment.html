@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" class="tourism-assessment-page">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourism Assessment | Venancia Consultancy Pty Ltd</title>
+    <meta name="description" content="Complete a dedicated tourism assessment so we can better understand your travel plans and guide you more accurately.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container">
+            <nav class="nav-container">
+                <a href="index.html" class="logo">
+                    <img src="assets/logo.png" alt="Venancia Consultancy Pty Ltd Logo">
+                    <span>Venancia Consultancy Pty Ltd</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="index.html#services">Services</a></li>
+                    <li><a href="blog.html">Insights & Opportunities</a></li>
+                    <li><a href="index.html#contact">Contact Us</a></li>
+                </ul>
+                <div class="header-ctas">
+                    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="mobile-menu">
+        <button class="mobile-menu-close"><i class="fas fa-times"></i></button>
+        <ul>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="blog.html">Insights & Opportunities</a></li>
+            <li><a href="index.html#contact">Contact Us</a></li>
+            <li><a href="tel:+61431996025">Call Us</a></li>
+            <li><a href="https://wa.me/61431996025">Message Us on WhatsApp</a></li>
+        </ul>
+    </div>
+
+    <main>
+        <section class="tourism-hero">
+            <div class="container">
+                <div class="tourism-hero-grid">
+                    <div class="tourism-hero-copy" data-reveal="fade-up">
+                        <span class="badge">Tourism Assessment</span>
+                        <h1 class="section-title" style="font-size: clamp(2.4rem, 5vw, 4.3rem); color: var(--white); margin-bottom: 18px;">
+                            Tell Us About Your <span class="highlight">Travel Plans</span>
+                        </h1>
+                        <p style="font-size: 1.05rem; line-height: 1.8; margin-bottom: 0;">
+                            Complete this dedicated assessment so we can understand your destination, timeline, travel history, and support needs before recommending the right next step.
+                        </p>
+                    </div>
+                    <div class="tourism-hero-card" data-reveal="fade-left">
+                        <h3>What we need to know</h3>
+                        <p>Answer a few targeted questions so our team can prepare relevant tourism guidance for your case.</p>
+                        <div class="tourism-summary">
+                            <div class="tourism-summary-item">
+                                <i class="fas fa-location-dot"></i>
+                                <div>
+                                    <strong>Destination</strong>
+                                    <span>Where you want to travel</span>
+                                </div>
+                            </div>
+                            <div class="tourism-summary-item">
+                                <i class="fas fa-calendar-days"></i>
+                                <div>
+                                    <strong>Timeline</strong>
+                                    <span>When you plan to travel and stay</span>
+                                </div>
+                            </div>
+                            <div class="tourism-summary-item">
+                                <i class="fas fa-passport"></i>
+                                <div>
+                                    <strong>Travel Readiness</strong>
+                                    <span>Passport, history, and supporting details</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tourism-assessment-section">
+            <div class="container">
+                <div class="tourism-assessment-layout">
+                    <div class="tourism-assessment-shell" data-reveal="fade-up">
+                        <div class="assessment-progress" aria-label="Assessment progress">
+                            <span class="active"></span>
+                            <span class="active"></span>
+                            <span class="active"></span>
+                        </div>
+
+                        <div class="tourism-assessment-note">
+                            <strong>Dedicated tourism review</strong>
+                            <p style="margin: 0;">This page focuses only on travel and tourism so we can filter the right guidance faster than with a general form.</p>
+                        </div>
+
+                        <form id="assessment-form" class="contact-form" action="https://formsubmit.co/info@venancia.com.au" method="POST" enctype="multipart/form-data" target="assessment-submit-frame">
+                            <input type="hidden" id="form-subject" name="_subject" value="Tourism Assessment">
+                            <input type="hidden" name="_captcha" value="false">
+                            <input type="hidden" name="_template" value="table">
+                            <input type="hidden" name="assessmentType" value="tourism">
+                            <input type="hidden" name="interest" value="Tourist Visa">
+                            <input type="hidden" id="submitted-at-au" name="Submitted at (Australia/Melbourne)" value="">
+
+                            <div class="assessment-section">
+                                <div class="assessment-section-title">
+                                    <span>1</span>
+                                    <h3>Your Contact Details</h3>
+                                </div>
+                                <div class="assessment-question-grid">
+                                    <div class="form-group">
+                                        <label for="name">Full Name</label>
+                                        <input type="text" id="name" name="name" class="form-control" placeholder="John Doe" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email Address</label>
+                                        <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com" required>
+                                    </div>
+                                <div class="form-group">
+                                    <label for="phone">Phone / WhatsApp</label>
+                                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="+63 900 000 0000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="referred">Referred By (Optional)</label>
+                                    <input type="text" id="referred" name="Referred" class="form-control" placeholder="E.g. Friend, Social Media">
+                                </div>
+                                <div class="form-group">
+                                    <label for="country">Current Country</label>
+                                    <select id="country" name="country" class="form-control" required>
+                                            <option value="" disabled selected>Select your country</option>
+                                            <option value="Philippines">Philippines</option>
+                                            <option value="Sri Lanka">Sri Lanka</option>
+                                            <option value="Nepal">Nepal</option>
+                                            <option value="Indonesia">Indonesia</option>
+                                            <option value="Australia">Australia</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="assessment-section">
+                                <div class="assessment-section-title">
+                                    <span>2</span>
+                                    <h3>Your Travel Plan</h3>
+                                </div>
+                                <div class="assessment-question-grid">
+                                    <div class="form-group">
+                                        <label for="destination-country">Destination Country</label>
+                                        <input type="text" id="destination-country" name="destinationCountry" class="form-control" placeholder="Example: New Zealand" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="travel-purpose">Purpose of Travel</label>
+                                        <select id="travel-purpose" name="travelPurpose" class="form-control" required>
+                                            <option value="" disabled selected>Select travel purpose</option>
+                                            <option value="Tourism">Tourism / Holiday</option>
+                                            <option value="Family Visit">Family Visit</option>
+                                            <option value="Friends Visit">Friends Visit</option>
+                                            <option value="Business Trip">Business Trip</option>
+                                            <option value="Transit">Transit</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="intended-travel-date">Intended Travel Date</label>
+                                        <input type="date" id="intended-travel-date" name="intendedTravelDate" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="travel-duration">Planned Length of Stay</label>
+                                        <select id="travel-duration" name="travelDuration" class="form-control" required>
+                                            <option value="" disabled selected>Select duration</option>
+                                            <option value="1-7 days">1-7 days</option>
+                                            <option value="1-2 weeks">1-2 weeks</option>
+                                            <option value="2-4 weeks">2-4 weeks</option>
+                                            <option value="1-3 months">1-3 months</option>
+                                            <option value="More than 3 months">More than 3 months</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="assessment-section">
+                                <div class="assessment-section-title">
+                                    <span>3</span>
+                                    <h3>Travel Readiness</h3>
+                                </div>
+                                <div class="assessment-question-grid">
+                                    <div class="form-group">
+                                        <label for="passport-status">Do you have a valid passport?</label>
+                                        <select id="passport-status" name="passportStatus" class="form-control" required>
+                                            <option value="" disabled selected>Select an option</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                            <option value="Expired">Expired</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="travel-history">Have you travelled internationally before?</label>
+                                        <select id="travel-history" name="travelHistory" class="form-control" required>
+                                            <option value="" disabled selected>Select an option</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="visa-refusal-history">Any previous visa refusal?</label>
+                                        <select id="visa-refusal-history" name="visaRefusalHistory" class="form-control" required>
+                                            <option value="" disabled selected>Select an option</option>
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="travel-companions">Who are you travelling with?</label>
+                                        <select id="travel-companions" name="travelCompanions" class="form-control" required>
+                                            <option value="" disabled selected>Select one</option>
+                                            <option value="Solo">Solo</option>
+                                            <option value="Family">Family</option>
+                                            <option value="Friends">Friends</option>
+                                            <option value="Partner">Partner</option>
+                                            <option value="Group">Group</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="funding-status">Do you have funds prepared for the trip?</label>
+                                        <select id="funding-status" name="fundingStatus" class="form-control" required>
+                                            <option value="" disabled selected>Select an option</option>
+                                            <option value="Yes">Yes</option>
+                                            <option value="In progress">In progress</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="notes">Additional Notes</label>
+                                        <textarea id="notes" name="notes" class="form-control" rows="4" placeholder="Tell us anything else that could help us guide you better."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary full-width">Submit Tourism Assessment</button>
+                        </form>
+
+                        <iframe id="assessment-submit-frame" name="assessment-submit-frame" title="Assessment submission target" style="display: none; width: 0; height: 0; border: 0;"></iframe>
+                        <div id="form-success" class="form-success-message hidden">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Assessment Sent</h3>
+                            <p>Thank you. We have received your tourism assessment and will review your travel details shortly.</p>
+                            <button class="btn btn-outline" onclick="resetForm()">Send Another</button>
+                        </div>
+                        <div id="form-error" class="form-success-message hidden">
+                            <i class="fas fa-circle-exclamation"></i>
+                            <h3>Submission Failed</h3>
+                            <p>We could not send your tourism assessment right now. Please try again in a moment or contact us directly at info@venancia.com.au.</p>
+                            <button class="btn btn-outline" onclick="resetForm()">Send Another</button>
+                        </div>
+                    </div>
+
+                    <aside class="assessment-help-card" data-reveal="fade-left">
+                        <h3>Why this helps</h3>
+                        <p>Tourism requests are easier to assess when we know exactly where you want to go, when you plan to travel, and whether you have any visa history we should consider.</p>
+                        <div class="assessment-help-list">
+                            <div class="assessment-help-item">
+                                <i class="fas fa-bullseye"></i>
+                                <div>
+                                    <strong>More relevant advice</strong>
+                                    <span>We can focus on the right destination and visa type faster.</span>
+                                </div>
+                            </div>
+                            <div class="assessment-help-item">
+                                <i class="fas fa-file-circle-check"></i>
+                                <div>
+                                    <strong>Fewer follow-up questions</strong>
+                                    <span>We gather the key details up front to save time.</span>
+                                </div>
+                            </div>
+                            <div class="assessment-help-item">
+                                <i class="fas fa-message"></i>
+                                <div>
+                                    <strong>Clearer next steps</strong>
+                                    <span>Our response can be tailored to your travel profile.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 24px;">
+                            <a href="index.html#contact" class="btn btn-outline full-width" style="border-color: rgba(255,255,255,0.25); color: var(--white);">Back to Main Contact</a>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <img src="assets/logo.png" alt="Venancia Consultancy Pty Ltd Logo">
+                        <span>Venancia Consultancy Pty Ltd</span>
+                    </a>
+                    <p>Australia-based pathway consultancy helping you build a successful future in Europe and beyond. Expert guidance, personalized support.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/venanciaconsultancy/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#services">Services</a></li>
+                        <li><a href="blog.html">Insights & Opportunities</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms &amp; Conditions</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Venancia Consultancy Pty Ltd. ABN 88 662 559 560. All rights reserved. | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms.html">Terms &amp; Conditions</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const mapping = {
+                name: 'name',
+                email: 'email',
+                phone: 'phone',
+                country: 'country'
+            };
+
+            Object.entries(mapping).forEach(([paramName, fieldId]) => {
+                const field = document.getElementById(fieldId);
+                const value = params.get(paramName);
+                if (field && value) {
+                    field.value = value;
+                }
+            });
+
+            const interestField = document.querySelector('input[name="interest"]');
+            const referredField = document.getElementById('referred');
+            if (interestField && params.get('interest')) {
+                interestField.value = params.get('interest');
+            }
+            if (referredField && params.get('referred')) {
+                referredField.value = params.get('referred');
+            }
+        })();
+    </script>
+    <div id="google_translate_element" style="display:none"></div>
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script src="/api-base.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

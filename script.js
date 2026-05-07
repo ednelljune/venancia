@@ -160,7 +160,6 @@ const initVenanciaSite = () => {
 
             const formData = new FormData(assessmentForm);
             const name = formData.get('name')?.toString().trim() || '';
-            const subject = `Request for Assessment - ${name}`;
             const selectedFile = fileInput?.files?.[0];
             const allowedFileTypes = [
                 'application/pdf',
@@ -168,6 +167,7 @@ const initVenanciaSite = () => {
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             ];
             const maxFileSizeBytes = 10 * 1024 * 1024;
+            const subject = `Request for Assessment - ${name}`;
 
             if (formSubjectInput) {
                 formSubjectInput.value = subject;
@@ -229,8 +229,8 @@ const initVenanciaSite = () => {
                         }
                         formError.classList.remove('hidden');
                     }
-                    resetSubmitButton();
-                }, 12000);
+                resetSubmitButton();
+            }, 12000);
 
                 assessmentForm.submit();
             } catch (error) {
@@ -484,8 +484,16 @@ const initVenanciaSite = () => {
     let allPosts = Array.isArray(window.VENANCIA_CONTENT?.posts) ? window.VENANCIA_CONTENT.posts : [];
 
     const sortPosts = (posts) => [...posts].sort((a, b) => {
-        const sortDelta = (a.sortOrder || 0) - (b.sortOrder || 0);
+        const aDate = Date.parse(a?.createdAt || a?.updatedAt || a?.date || '');
+        const bDate = Date.parse(b?.createdAt || b?.updatedAt || b?.date || '');
+
+        if (!Number.isNaN(aDate) && !Number.isNaN(bDate) && aDate !== bDate) {
+            return bDate - aDate;
+        }
+
+        const sortDelta = (b.sortOrder || 0) - (a.sortOrder || 0);
         if (sortDelta !== 0) return sortDelta;
+
         return String(a.title || '').localeCompare(String(b.title || ''));
     });
 

@@ -273,8 +273,16 @@ const initVenanciaAdmin = async () => {
     };
 
     const sortPosts = (list) => [...list].sort((a, b) => {
-        const sortDelta = (a.sortOrder || 0) - (b.sortOrder || 0);
+        const aDate = Date.parse(a?.createdAt || a?.updatedAt || a?.date || '');
+        const bDate = Date.parse(b?.createdAt || b?.updatedAt || b?.date || '');
+
+        if (!Number.isNaN(aDate) && !Number.isNaN(bDate) && aDate !== bDate) {
+            return bDate - aDate;
+        }
+
+        const sortDelta = (b.sortOrder || 0) - (a.sortOrder || 0);
         if (sortDelta !== 0) return sortDelta;
+
         return String(a.title || '').localeCompare(String(b.title || ''));
     });
 

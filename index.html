@@ -128,15 +128,16 @@
                     </div>
                 </div>
 
-                <!-- Slide 4: Australia -->
+                <!-- Slide 4: Travel -->
                 <div class="hero-slide" style="background-image: url('assets/australian-visa.png');">
                     <div class="hero-overlay"></div>
                     <div class="container">
                         <div class="hero-content">
-                            <span class="badge">Australian Visas</span>
-                            <h1>Explore Australia with <br><span class="highlight">Confidence</span></h1>
-                            <p>Specialized assistance for Australian Visitor and Partner visas. Comprehensive document
-                                review and migration consultations for a seamless application process.</p>
+                            <span class="badge">Travel Support</span>
+                            <h1>Explore the World with <br><span class="highlight">Confidence</span></h1>
+                            <p>Specialized assistance for tourist visas and travel documentation across destinations.
+                                Comprehensive document review and consultation support for a seamless application
+                                process.</p>
                         </div>
                     </div>
                 </div>
@@ -259,22 +260,22 @@
                         </div>
                     </div>
 
-                    <!-- Australian Visas -->
+                    <!-- Tourist Destinations -->
                     <div class="service-card" data-reveal="fade-up" data-delay="200">
                         <div class="card-image">
-                            <img src="assets/australian-visa.png" alt="Australian Visas">
-                            <div class="card-badge" style="background: var(--dark-grey);">Australia</div>
+                            <img src="assets/australian-visa.png" alt="Tourist Destinations">
+                            <div class="card-badge" style="background: var(--dark-grey);">Tourism</div>
                         </div>
                         <div class="card-content">
-                            <h3>Australian Visas</h3>
+                            <h3>Tourist Travel Support</h3>
                             <ul class="service-list">
-                                <li><i class="fas fa-plane-arrival"></i> Visitor Visa assistance</li>
-                                <li><i class="fas fa-heart"></i> Partner Visa applications</li>
-                                <li><i class="fas fa-file-signature"></i> Comprehensive document review</li>
-                                <li><i class="fas fa-comments"></i> Migration consultations</li>
-                                <li><i class="fas fa-passport"></i> Full application lodgement</li>
+                                <li><i class="fas fa-plane-arrival"></i> Visitor visa assistance</li>
+                                <li><i class="fas fa-route"></i> Destination planning guidance</li>
+                                <li><i class="fas fa-file-signature"></i> Document review and preparation</li>
+                                <li><i class="fas fa-comments"></i> Travel consultation support</li>
+                                <li><i class="fas fa-passport"></i> Application lodgement assistance</li>
                             </ul>
-                            <a href="#contact" class="btn btn-outline full-width">Apply for Australia</a>
+                            <a href="tourism-assessment.html" class="btn btn-outline full-width">Start Tourism Assessment</a>
                         </div>
                     </div>
                 </div>
@@ -385,32 +386,37 @@
                                 <img src="https://flagcdn.com/w160/es.png" alt="Spain Flag">
                                 <span>Barcelona</span>
                             </div>
+                            <div class="country-card" data-reveal="zoom-in" data-delay="1200">
+                                <img src="https://flagcdn.com/w160/nz.png" alt="New Zealand Flag">
+                                <span>New Zealand</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="country-category">
                         <h3>Study Destination</h3>
-                        <div class="category-grid single">
+                        <div class="category-grid education">
                             <div class="country-card education" data-reveal="zoom-in">
                                 <img src="https://flagcdn.com/w160/es.png" alt="Spain Flag">
                                 <span>Spain</span>
-                                <small>Multiple Universities Available</small>
                             </div>
                         </div>
                     </div>
 
                     <div class="country-category">
                         <h3>Tourist Destination</h3>
-                        <div class="category-grid single">
+                        <div class="category-grid tourist">
                             <div class="country-card tourist" data-reveal="zoom-in">
                                 <img src="https://flagcdn.com/w160/au.png" alt="Australia Flag">
                                 <span>Australia</span>
-                                <small>Visitor & Partner Visas</small>
                             </div>
                             <div class="country-card tourist" data-reveal="zoom-in" data-delay="100">
                                 <img src="https://flagcdn.com/w160/ph.png" alt="Philippines Flag">
                                 <span>Philippines</span>
-                                <small>Tourist Visas</small>
+                            </div>
+                            <div class="country-card tourist" data-reveal="zoom-in" data-delay="200">
+                                <img src="https://flagcdn.com/w160/nz.png" alt="New Zealand Flag">
+                                <span>New Zealand</span>
                             </div>
                         </div>
                     </div>
@@ -576,7 +582,7 @@
                 <div class="contact-grid">
                     <div class="contact-info" data-reveal="fade-right">
                         <h2 class="section-title">Get a <span class="highlight">Free Assessment</span></h2>
-                        <p>Fill out the form to check your eligibility for a professional, student, or tourism pathway.
+                        <p>Fill out the form to check your eligibility for a professional, student, or travel pathway.
                             Our experts will get back to you within 24-48 hours.</p>
                         <div class="info-list">
                             <div class="info-item">
@@ -617,6 +623,7 @@
                             <input type="hidden" id="form-subject" name="_subject" value="Request for Assessment">
                             <input type="hidden" name="_captcha" value="false">
                             <input type="hidden" name="_template" value="table">
+                            <input type="hidden" name="assessmentType" value="general">
                             <input type="hidden" id="submitted-at-au" name="Submitted at (Australia/Melbourne)"
                                 value="">
                             <div class="form-row">
@@ -848,7 +855,6 @@
                                         <option value="" disabled selected>What are you looking for?</option>
                                         <option value="Skilled Worker">Professional Pathway</option>
                                         <option value="Student">Student Pathway</option>
-                                        <option value="Tourist Visa">Tourist/Partner Visa (Australia)</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

@@ -712,16 +712,23 @@ body {
 
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 15px;
 }
 
 .category-grid.work {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.category-grid.tourist {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.category-grid.education {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 .category-grid.single {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
 .category-grid.double {
@@ -769,14 +776,16 @@ body {
     font-size: 0.85rem;
 }
 
-.country-card.education {
-    padding: 50px 30px;
-    border: 2px solid var(--primary);
+.country-card.education,
+.country-card.tourist {
+    padding: 15px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.country-card.tourist {
-    padding: 50px 30px;
-    border: 2px solid var(--primary-dark);
+.country-card.tourist img,
+.country-card.education img {
+    height: 32px;
 }
 
 .country-card small {
@@ -1116,6 +1125,257 @@ body {
 
 .form-success-message h3 {
     margin-bottom: 10px;
+}
+
+.tourism-assessment-cta {
+    display: grid;
+    gap: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 184, 0, 0.18);
+    background: rgba(255, 184, 0, 0.08);
+}
+
+.tourism-assessment-cta p {
+    margin: 6px 0 0;
+    color: var(--dark-grey);
+    font-size: 0.95rem;
+}
+
+.tourism-assessment-cta .btn {
+    width: 100%;
+}
+
+.tourism-assessment-page .main-header {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.tourism-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 140px 0 80px;
+    color: var(--white);
+    background:
+        radial-gradient(circle at top left, rgba(255, 184, 0, 0.22), transparent 34%),
+        linear-gradient(135deg, #0f172a 0%, #111827 44%, #1f2937 100%);
+}
+
+.tourism-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -12% -20% auto;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(255, 184, 0, 0.14) 0%, rgba(255, 184, 0, 0) 68%);
+    pointer-events: none;
+}
+
+.tourism-hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+    gap: 30px;
+    align-items: stretch;
+}
+
+.tourism-hero-copy .section-title,
+.tourism-hero-copy p {
+    color: var(--white);
+}
+
+.tourism-hero-copy p {
+    color: rgba(255, 255, 255, 0.78);
+    max-width: 700px;
+}
+
+.tourism-hero-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 24px;
+    padding: 28px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
+}
+
+.tourism-hero-card h3 {
+    color: var(--white);
+    margin-bottom: 14px;
+}
+
+.tourism-hero-card p {
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 20px;
+}
+
+.tourism-summary {
+    display: grid;
+    gap: 14px;
+}
+
+.tourism-summary-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.tourism-summary-item i {
+    color: var(--primary);
+    margin-top: 3px;
+}
+
+.tourism-summary-item strong,
+.tourism-summary-item span {
+    display: block;
+}
+
+.tourism-assessment-section {
+    padding: 90px 0 110px;
+    background:
+        linear-gradient(180deg, #f7f7f4 0%, #ffffff 100%);
+}
+
+.tourism-assessment-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+    gap: 30px;
+    align-items: start;
+}
+
+.tourism-assessment-shell {
+    background: var(--white);
+    border-radius: 28px;
+    padding: 40px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.assessment-progress {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+}
+
+.assessment-progress span {
+    height: 8px;
+    flex: 1;
+    border-radius: 999px;
+    background: rgba(255, 184, 0, 0.16);
+}
+
+.assessment-progress span.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.assessment-section {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid #ececec;
+}
+
+.assessment-section:last-of-type {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.assessment-section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.assessment-section-title span {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 184, 0, 0.12);
+    color: var(--primary-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.assessment-question-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.assessment-question-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.assessment-help-card {
+    position: sticky;
+    top: 30px;
+    padding: 28px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.98), rgba(17, 24, 39, 0.96));
+    color: var(--white);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.12);
+}
+
+.assessment-help-card h3,
+.assessment-help-card h4,
+.assessment-help-card p,
+.assessment-help-card li {
+    color: var(--white);
+}
+
+.assessment-help-card p {
+    color: rgba(255, 255, 255, 0.74);
+}
+
+.assessment-help-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.assessment-help-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+}
+
+.assessment-help-item i {
+    color: var(--primary);
+    margin-top: 4px;
+}
+
+.tourism-assessment-note {
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: rgba(255, 184, 0, 0.08);
+    border: 1px solid rgba(255, 184, 0, 0.16);
+    color: var(--dark-grey);
+    margin-bottom: 24px;
+}
+
+.tourism-assessment-note strong {
+    display: block;
+    color: var(--dark);
+    margin-bottom: 4px;
+}
+
+.tourism-assessment-page .form-success-message {
+    margin-top: 10px;
 }
 
 .hidden {
@@ -1661,6 +1921,15 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .tourism-hero-grid,
+    .tourism-assessment-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .assessment-help-card {
+        position: static;
+    }
+
     .hero {
         min-height: 86vh;
     }
@@ -1743,6 +2012,10 @@ body {
     }
     
     .footer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .assessment-question-grid {
         grid-template-columns: 1fr;
     }
 
@@ -2439,6 +2712,11 @@ body {
     .footer-destination-grid {
         grid-template-columns: 1fr;
     }
+
+    .tourism-assessment-shell,
+    .assessment-help-card {
+        padding: 28px 22px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -2452,6 +2730,19 @@ body {
     
     .subscribe-form .btn {
         width: 100%;
+    }
+
+    .tourism-hero {
+        padding: 120px 0 60px;
+    }
+
+    .tourism-assessment-section {
+        padding: 70px 0 90px;
+    }
+
+    .tourism-assessment-shell,
+    .assessment-help-card {
+        border-radius: 20px;
     }
     
     .insights-grid {

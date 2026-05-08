@@ -1,5 +1,70 @@
 export const seedPosts = [
     {
+        id: 'indian-nationals-work-pathways-europe-new-zealand',
+        title: 'Indian Nationals Can Apply for Work Pathways to Europe and New Zealand',
+        category: 'Visa Updates',
+        tagClass: 'dark',
+        icon: 'fa-passport',
+        iconClass: 'dark',
+        date: 'May 8, 2026',
+        readTime: '5 min read',
+        isAnnouncement: false,
+        sortOrder: 10,
+        content: `
+            <p>At <strong>Venancia Consultancy</strong>, we support <strong>Indian nationals</strong> who want to explore <strong>work opportunities in Europe and New Zealand</strong>. As a consultancy, our role is to provide clear guidance, assess eligibility, and help applicants understand the most suitable <strong>work visa pathway</strong> based on their background and destination goals.</p>
+            <p>We work with applicants who are searching for <strong>overseas work pathways</strong>, <strong>skilled migration options</strong>, <strong>employer-sponsored visas</strong>, and <strong>country-specific visa guidance</strong>. Our focus is not recruitment. Our focus is helping you make informed decisions and prepare a stronger application.</p>
+
+            <h2 style="margin: 34px 0 16px;">Work Pathways to Europe for Indian Nationals</h2>
+            <p>Europe remains one of the most popular destinations for skilled workers from India. Depending on the country, applicants may be able to explore <strong>skilled worker visas</strong>, <strong>employment-based permits</strong>, or <strong>employer-sponsored routes</strong>.</p>
+            <p>At Venancia Consultancy, we help Indian nationals understand which European destination may best match their profile. This includes reviewing your:</p>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Occupation</li>
+                <li style="margin-bottom: 10px;">Qualifications</li>
+                <li style="margin-bottom: 10px;">Work experience</li>
+                <li style="margin-bottom: 10px;">Salary expectations</li>
+                <li style="margin-bottom: 10px;">Visa eligibility</li>
+                <li style="margin-bottom: 10px;">Destination preferences</li>
+            </ul>
+            <p>Common sectors that may have demand in Europe include:</p>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Healthcare</li>
+                <li style="margin-bottom: 10px;">Construction</li>
+                <li style="margin-bottom: 10px;">Hospitality</li>
+                <li style="margin-bottom: 10px;">Logistics</li>
+                <li style="margin-bottom: 10px;">Information Technology</li>
+                <li style="margin-bottom: 10px;">Technical trades</li>
+            </ul>
+            <p>Because each country in Europe has different immigration rules, it is important to assess the right pathway before applying. Venancia Consultancy helps you identify the most relevant option and avoid unsuitable applications.</p>
+
+            <h2 style="margin: 34px 0 16px;">Work Pathways to New Zealand for Indian Nationals</h2>
+            <p>New Zealand is another strong destination for Indian nationals seeking overseas work opportunities. Depending on your occupation and background, you may be eligible for a <strong>work visa</strong>, <strong>accredited employer pathway</strong>, or another <strong>skilled migration route</strong>.</p>
+            <p>At Venancia Consultancy, we provide guidance to help you understand:</p>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Whether your occupation is suitable</li>
+                <li style="margin-bottom: 10px;">What type of visa may apply</li>
+                <li style="margin-bottom: 10px;">What supporting documents may be needed</li>
+                <li style="margin-bottom: 10px;">How to prepare for a better outcome</li>
+            </ul>
+            <p>Our consultancy approach is designed to help applicants move forward with clarity and confidence.</p>
+
+            <h2 style="margin: 34px 0 16px;">Why Choose Venancia Consultancy</h2>
+            <p>As a consultancy, we take a personalised approach to every case. We do not treat every applicant the same. Instead, we assess your profile carefully and help you understand the most practical pathway for your situation.</p>
+            <p>When you speak with Venancia Consultancy, we help you with:</p>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li style="margin-bottom: 10px;">Eligibility assessment</li>
+                <li style="margin-bottom: 10px;">Visa pathway guidance</li>
+                <li style="margin-bottom: 10px;">Document preparation support</li>
+                <li style="margin-bottom: 10px;">Destination comparison</li>
+                <li style="margin-bottom: 10px;">Application readiness</li>
+            </ul>
+            <p>If you are searching for <strong>Indian nationals work visa Europe</strong>, <strong>work opportunities in New Zealand for Indians</strong>, or <strong>consultancy support for overseas work pathways</strong>, Venancia Consultancy can help you take the next step.</p>
+
+            <h2 style="margin: 34px 0 16px;">Start Your Assessment With Venancia</h2>
+            <p>If you are an Indian national looking to apply for work opportunities in <strong>Europe</strong> or <strong>New Zealand</strong>, Venancia Consultancy is here to guide you through the process.</p>
+            <p>Start with a proper assessment so you can understand the right pathway for your profile and destination goals.</p>
+        `
+    },
+    {
         id: 'australia-visitor-visa-600-update',
         title: 'Australia Visitor Visa (Subclass 600) Update',
         category: 'Urgent',

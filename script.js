@@ -630,7 +630,7 @@ const initVenanciaSite = () => {
     const renderMergedFeaturedPosts = (container, posts) => {
         if (!container) return;
 
-        const mergedPosts = posts.slice(0, 5);
+        const mergedPosts = posts;
 
         if (mergedPosts.length === 0) {
             container.innerHTML = `
@@ -853,8 +853,8 @@ const initVenanciaSite = () => {
     };
 
     const renderBlogPage = () => {
-        const announcements = getAnnouncements();
-        const blogs = getVisiblePosts();
+        const announcements = sortPosts(getAnnouncements());
+        const blogs = sortPosts(getVisiblePosts());
         const featuredPosts = uniquePostsByContent(uniquePostsById(sortPosts(blogs)));
         const sidebarPosts = uniquePostsByContent(uniquePostsById(sortPosts(announcements)));
         let sidebarPage = 0;
